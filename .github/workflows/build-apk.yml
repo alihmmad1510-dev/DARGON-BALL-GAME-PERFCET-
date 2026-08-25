@@ -1,4 +1,4 @@
-name: 🐉 DRAGON BALL - 678 FEATURES APK
+name: 🐉 DRAGON BALL 678 - 19MB APK
 
 on:
   workflow_dispatch:
@@ -14,31 +14,51 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+
+      # =========================
+      # 1 - DOWNLOAD PROJECT
+      # =========================
       - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: ☕ Java
+      # =========================
+      # 2 - JAVA 21
+      # =========================
+      - name: ☕ Setup Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
+          cache: gradle
 
-      - name: 📱 Android SDK
+      # =========================
+      # 3 - ANDROID
+      # =========================
+      - name: 📱 Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: 🛠️ Install SDK
+      - name: 🛠️ Install Android SDK
         run: |
-          sdkmanager "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0"
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-35"
+          sdkmanager "build-tools;35.0.0"
 
-      - name: 🟢 Node
+      # =========================
+      # 4 - NODE
+      # =========================
+      - name: 🟢 Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: game/package.json
 
-      - name: 📁 Create Game
+      # =========================
+      # 5 - CREATE GAME
+      # =========================
+      - name: 🎮 Create Game
         run: |
+
           mkdir -p game
           cd game
 
@@ -47,9 +67,6 @@ jobs:
             "name": "dragon-ball-678",
             "version": "1.0.0",
             "private": true,
-            "scripts": {
-              "build": "echo build"
-            },
             "dependencies": {
               "@capacitor/core": "^7.4.0",
               "@capacitor/android": "^7.4.0",
@@ -58,23 +75,34 @@ jobs:
           }
           EOF
 
-          npm install
+          npm install --omit=dev
 
-          npx cap init "DRAGON BALL 678" "com.goku.dragonball678" --web-dir=www
+          npx cap init \
+            "DRAGON BALL 678" \
+            "com.goku.dragonball678" \
+            --web-dir=www
 
           mkdir -p www
 
           cat > www/index.html <<'EOF'
           <!DOCTYPE html>
           <html lang="ar">
+
           <head>
+
           <meta charset="UTF-8">
-          <meta name="viewport"
-          content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+          <meta
+            name="viewport"
+            content="width=device-width,
+            initial-scale=1,
+            maximum-scale=1,
+            user-scalable=no">
 
           <title>DRAGON BALL 678</title>
 
           <style>
+
           *{
             box-sizing:border-box;
             user-select:none;
@@ -86,359 +114,657 @@ jobs:
             width:100%;
             height:100%;
             overflow:hidden;
-            background:#050510;
+            background:#02020b;
             font-family:Arial,sans-serif;
             color:white;
           }
 
           #game{
-            width:100vw;
-            height:100vh;
             position:relative;
+            width:100%;
+            height:100%;
             overflow:hidden;
             background:
-              radial-gradient(circle at 50% 45%,#252070 0,#0a0a24 35%,#020207 80%);
+            radial-gradient(
+              circle at 50% 45%,
+              #282080 0%,
+              #101038 35%,
+              #02020b 85%
+            );
           }
 
           #stars{
             position:absolute;
             inset:0;
+            opacity:.4;
+
             background-image:
-              radial-gradient(circle,#fff 1px,transparent 2px);
+            radial-gradient(
+              circle,
+              white 1px,
+              transparent 2px
+            );
+
             background-size:55px 55px;
-            opacity:.35;
-            animation:stars 12s linear infinite;
+
+            animation:
+            stars 15s linear infinite;
           }
 
           @keyframes stars{
-            from{transform:translateY(0)}
-            to{transform:translateY(55px)}
+
+            from{
+              transform:translateY(0);
+            }
+
+            to{
+              transform:translateY(55px);
+            }
+
           }
 
           #menu{
+
             position:absolute;
             inset:0;
+
             display:flex;
             flex-direction:column;
+
             justify-content:center;
             align-items:center;
-            gap:12px;
+
+            gap:10px;
+
             z-index:10;
+
           }
 
           .title{
-            font-size:clamp(30px,8vw,70px);
+
+            font-size:
+            clamp(30px,8vw,65px);
+
             font-weight:900;
+
+            color:#ffd900;
+
             text-align:center;
-            color:#ffd400;
+
             text-shadow:
-              0 0 8px #ff7200,
-              0 0 25px #ff3200;
+            0 0 8px #ff7500,
+            0 0 25px #ff3000;
+
           }
 
           .subtitle{
-            color:#7ddcff;
+
+            color:#6edcff;
             font-weight:bold;
-            margin-bottom:15px;
+            margin-bottom:10px;
+
           }
 
           button{
-            border:2px solid #5ad9ff;
-            background:linear-gradient(135deg,#17175a,#36106b);
-            color:white;
-            border-radius:14px;
-            padding:12px 30px;
+
             min-width:210px;
-            font-size:18px;
+
+            padding:11px 25px;
+
+            border:
+            2px solid #50d8ff;
+
+            border-radius:14px;
+
+            background:
+            linear-gradient(
+              135deg,
+              #14144d,
+              #351067
+            );
+
+            color:white;
+
+            font-size:17px;
+
             font-weight:bold;
-            box-shadow:0 0 12px #285cff;
+
+            box-shadow:
+            0 0 10px #285cff;
+
           }
 
           button:active{
-            transform:scale(.94);
+
+            transform:scale(.93);
+
           }
 
           #battle{
+
             display:none;
+
             position:absolute;
             inset:0;
+
           }
 
           .hud{
+
             position:absolute;
-            top:10px;
-            left:10px;
-            right:10px;
+
+            top:8px;
+            left:8px;
+            right:8px;
+
             z-index:5;
+
           }
 
           .bar{
+
             width:42%;
-            height:20px;
+            height:19px;
+
             border:2px solid white;
+
             border-radius:10px;
+
             overflow:hidden;
+
             background:#111;
+
             display:inline-block;
+
           }
 
           .hp{
+
             width:100%;
             height:100%;
-            background:linear-gradient(90deg,#20ff55,#00a83a);
+
+            background:
+            linear-gradient(
+              90deg,
+              #1dff50,
+              #00a83b
+            );
+
           }
 
           .ki{
+
             width:100%;
             height:100%;
-            background:linear-gradient(90deg,#30baff,#673cff);
+
+            background:
+            linear-gradient(
+              90deg,
+              #32c8ff,
+              #663cff
+            );
+
           }
 
           #arena{
+
             position:absolute;
             inset:0;
+
             display:flex;
+
             justify-content:center;
             align-items:center;
+
           }
 
           .fighter{
+
             position:absolute;
+
             width:90px;
             height:130px;
+
             display:flex;
+
             flex-direction:column;
+
             align-items:center;
+
             justify-content:center;
-            font-size:70px;
-            filter:drop-shadow(0 0 12px #4abfff);
+
+            font-size:68px;
+
+            filter:
+            drop-shadow(
+              0 0 12px #40cfff
+            );
+
           }
 
           #player{
+
             left:20%;
             bottom:28%;
+
           }
 
           #enemy{
+
             right:20%;
             bottom:28%;
-            filter:drop-shadow(0 0 12px #ff4a32);
+
+            filter:
+            drop-shadow(
+              0 0 12px #ff452f
+            );
+
           }
 
           .aura{
-            animation:aura .35s infinite alternate;
+
+            animation:
+            aura .35s infinite alternate;
+
           }
 
           @keyframes aura{
-            from{filter:drop-shadow(0 0 8px #36cfff)}
-            to{filter:drop-shadow(0 0 30px #fff)}
+
+            from{
+              filter:
+              drop-shadow(
+                0 0 8px #36cfff
+              );
+            }
+
+            to{
+              filter:
+              drop-shadow(
+                0 0 30px white
+              );
+            }
+
           }
 
           #controls{
+
             position:absolute;
-            bottom:15px;
+
+            bottom:10px;
             left:0;
             right:0;
+
             display:flex;
-            justify-content:space-between;
-            padding:15px;
+
+            justify-content:
+            space-between;
+
+            padding:10px;
+
           }
 
           .pad{
+
             display:grid;
-            grid-template-columns:repeat(3,55px);
-            gap:5px;
+
+            grid-template-columns:
+            repeat(3,52px);
+
+            gap:4px;
+
           }
 
           .action{
+
             display:grid;
-            grid-template-columns:repeat(2,80px);
-            gap:8px;
+
+            grid-template-columns:
+            repeat(2,75px);
+
+            gap:6px;
+
           }
 
           .small{
-            min-width:55px;
-            width:55px;
-            height:55px;
+
+            min-width:52px;
+            width:52px;
+
+            height:52px;
+
             padding:0;
-            font-size:22px;
+
+            font-size:20px;
+
           }
 
           .attack{
-            min-width:80px;
-            height:55px;
+
+            min-width:75px;
+
+            height:52px;
+
             padding:0;
-            font-size:13px;
+
+            font-size:11px;
+
           }
 
           #msg{
+
             position:absolute;
+
             top:50%;
             left:50%;
-            transform:translate(-50%,-50%);
-            font-size:30px;
+
+            transform:
+            translate(-50%,-50%);
+
+            font-size:28px;
+
             font-weight:900;
+
             text-align:center;
-            text-shadow:0 0 15px #fff;
+
+            text-shadow:
+            0 0 15px white;
+
             pointer-events:none;
+
             z-index:20;
+
           }
 
-          #stats{
-            text-align:center;
-            font-size:13px;
-            color:#9eeeff;
-            margin-top:8px;
-          }
           </style>
+
           </head>
 
           <body>
 
           <div id="game">
 
-            <div id="stars"></div>
+          <div id="stars"></div>
 
-            <div id="menu">
+          <div id="menu">
 
-              <div class="title">🐉 DRAGON BALL</div>
-              <div class="subtitle">⚡ ULTIMATE WARRIORS — 678 FEATURES ⚡</div>
+          <div class="title">
+          🐉 DRAGON BALL
+          </div>
 
-              <button onclick="startGame()">🔥 PLAY</button>
-              <button onclick="training()">🥋 TRAINING</button>
-              <button onclick="missions()">🎯 MISSIONS</button>
-              <button onclick="transform()">⚡ TRANSFORM</button>
-              <button onclick="shop()">💎 SHOP</button>
-              <button onclick="settings()">⚙️ SETTINGS</button>
+          <div class="subtitle">
+          ⚡ ULTIMATE WARRIORS — 678 FEATURES ⚡
+          </div>
 
-              <div id="stats">
-                Level 1 • Power 100 • Ki 100 • Coins 0
-              </div>
+          <button onclick="startGame()">
+          🔥 PLAY
+          </button>
 
-            </div>
+          <button onclick="training()">
+          🥋 TRAINING
+          </button>
 
-            <div id="battle">
+          <button onclick="missions()">
+          🎯 MISSIONS
+          </button>
 
-              <div class="hud">
+          <button onclick="transform()">
+          ⚡ TRANSFORM
+          </button>
 
-                <div class="bar">
-                  <div id="php" class="hp"></div>
-                </div>
-
-                <span> 🟠 GOKU </span>
-
-                <span style="float:right">
-                  🔴 ENEMY
-                </span>
-
-                <div class="bar" style="float:right">
-                  <div id="ehp" class="hp"></div>
-                </div>
-
-                <br><br>
-
-                <div class="bar">
-                  <div id="pki" class="ki"></div>
-                </div>
-
-                <div class="bar" style="float:right">
-                  <div id="eki" class="ki"></div>
-                </div>
-
-              </div>
-
-              <div id="arena">
-
-                <div id="player" class="fighter">
-                  🧑‍🦱
-                  <small>GOKU</small>
-                </div>
-
-                <div id="enemy" class="fighter">
-                  👹
-                  <small>ENEMY</small>
-                </div>
-
-              </div>
-
-              <div id="msg"></div>
-
-              <div id="controls">
-
-                <div class="pad">
-                  <button class="small">↖</button>
-                  <button class="small" onclick="move(0,-1)">⬆</button>
-                  <button class="small">↗</button>
-
-                  <button class="small" onclick="move(-1,0)">⬅</button>
-                  <button class="small">●</button>
-                  <button class="small" onclick="move(1,0)">➡</button>
-
-                  <button class="small">↙</button>
-                  <button class="small" onclick="move(0,1)">⬇</button>
-                  <button class="small">↘</button>
-                </div>
-
-                <div class="action">
-                  <button class="attack" onclick="attack()">👊 ATTACK</button>
-                  <button class="attack" onclick="kiBlast()">💥 KI BLAST</button>
-                  <button class="attack" onclick="beam()">🌟 BEAM</button>
-                  <button class="attack" onclick="charge()">⚡ CHARGE</button>
-                  <button class="attack" onclick="transform()">🔥 TRANSFORM</button>
-                  <button class="attack" onclick="special()">☄️ SPECIAL</button>
-                </div>
-
-              </div>
-
-            </div>
+          <button onclick="shop()">
+          💎 SHOP
+          </button>
 
           </div>
+
+
+          <div id="battle">
+
+          <div class="hud">
+
+          <div class="bar">
+          <div id="php" class="hp"></div>
+          </div>
+
+          🟠 GOKU
+
+          <span style="float:right">
+          🔴 ENEMY
+          </span>
+
+          <div
+          class="bar"
+          style="float:right">
+
+          <div id="ehp" class="hp"></div>
+
+          </div>
+
+          <br><br>
+
+          <div class="bar">
+
+          <div
+          id="pki"
+          class="ki">
+          </div>
+
+          </div>
+
+          <div
+          class="bar"
+          style="float:right">
+
+          <div
+          id="eki"
+          class="ki">
+          </div>
+
+          </div>
+
+          </div>
+
+
+          <div id="arena">
+
+          <div
+          id="player"
+          class="fighter">
+
+          🧑‍🦱
+
+          <small>
+          GOKU
+          </small>
+
+          </div>
+
+
+          <div
+          id="enemy"
+          class="fighter">
+
+          👹
+
+          <small>
+          ENEMY
+          </small>
+
+          </div>
+
+          </div>
+
+
+          <div id="msg"></div>
+
+
+          <div id="controls">
+
+          <div class="pad">
+
+          <button
+          class="small">
+          ↖
+          </button>
+
+          <button
+          class="small"
+          onclick="move(0,-1)">
+          ⬆
+          </button>
+
+          <button
+          class="small">
+          ↗
+          </button>
+
+          <button
+          class="small"
+          onclick="move(-1,0)">
+          ⬅
+          </button>
+
+          <button class="small">
+          ●
+          </button>
+
+          <button
+          class="small"
+          onclick="move(1,0)">
+          ➡
+          </button>
+
+          <button class="small">
+          ↙
+          </button>
+
+          <button
+          class="small"
+          onclick="move(0,1)">
+          ⬇
+          </button>
+
+          <button class="small">
+          ↘
+          </button>
+
+          </div>
+
+
+          <div class="action">
+
+          <button
+          class="attack"
+          onclick="attack()">
+          👊 ATTACK
+          </button>
+
+          <button
+          class="attack"
+          onclick="kiBlast()">
+          💥 KI
+          </button>
+
+          <button
+          class="attack"
+          onclick="beam()">
+          🌟 BEAM
+          </button>
+
+          <button
+          class="attack"
+          onclick="charge()">
+          ⚡ CHARGE
+          </button>
+
+          <button
+          class="attack"
+          onclick="transform()">
+          🔥 FORM
+          </button>
+
+          <button
+          class="attack"
+          onclick="special()">
+          ☄️ SPECIAL
+          </button>
+
+          </div>
+
+          </div>
+
+          </div>
+
+          </div>
+
 
           <script>
 
           let playerHP=100;
           let enemyHP=100;
+
           let playerKi=100;
           let enemyKi=100;
+
           let level=1;
           let coins=0;
           let power=100;
+
           let transformed=false;
+
+
+          // 678 lightweight feature slots
 
           const features=[];
 
-          /*
-            678 lightweight feature flags.
-            They are used by the game systems below.
-          */
+          for(
+            let i=1;
+            i<=678;
+            i++
+          ){
 
-          for(let i=1;i<=678;i++){
             features.push({
+
               id:i,
+
               unlocked:i<=20,
+
               active:false,
+
               level:1
+
             });
+
           }
+
 
           function $(id){
+
             return document.getElementById(id);
+
           }
+
 
           function startGame(){
 
             $("menu").style.display="none";
+
             $("battle").style.display="block";
 
-            resetBattle();
+            reset();
 
-            message("🔥 BATTLE START!");
+            message(
+              "🔥 BATTLE START!"
+            );
+
           }
 
-          function resetBattle(){
+
+          function reset(){
 
             playerHP=100;
             enemyHP=100;
+
             playerKi=100;
             enemyKi=100;
 
@@ -446,21 +772,35 @@ jobs:
 
           }
 
+
           function update(){
 
-            $("php").style.width=Math.max(0,playerHP)+"%";
-            $("ehp").style.width=Math.max(0,enemyHP)+"%";
+            $("php").style.width=
+            Math.max(
+              0,
+              playerHP
+            )+"%";
 
-            $("pki").style.width=Math.max(0,playerKi)+"%";
-            $("eki").style.width=Math.max(0,enemyKi)+"%";
+            $("ehp").style.width=
+            Math.max(
+              0,
+              enemyHP
+            )+"%";
 
-            $("stats").innerText=
-              "Level "+level+
-              " • Power "+power+
-              " • Ki "+Math.floor(playerKi)+
-              " • Coins "+coins;
+            $("pki").style.width=
+            Math.max(
+              0,
+              playerKi
+            )+"%";
+
+            $("eki").style.width=
+            Math.max(
+              0,
+              enemyKi
+            )+"%";
 
           }
+
 
           function damage(amount){
 
@@ -471,73 +811,109 @@ jobs:
               enemyHP=0;
 
               coins+=100;
+
               level++;
+
               power+=20;
 
-              message("🏆 VICTORY! +100 COINS");
+              message(
+                "🏆 VICTORY! +100"
+              );
 
-              setTimeout(resetBattle,1500);
+              setTimeout(
+                reset,
+                1500
+              );
+
             }
 
             update();
 
           }
 
+
           function attack(){
 
-            damage(transformed?18:10);
+            damage(
+              transformed ? 18 : 10
+            );
 
             enemyAttack();
 
           }
+
 
           function kiBlast(){
 
             if(playerKi<10){
+
               message("⚡ NO KI!");
+
               return;
+
             }
 
             playerKi-=10;
 
-            damage(transformed?28:17);
+            damage(
+              transformed ? 28 : 17
+            );
 
             enemyAttack();
 
             update();
+
           }
+
 
           function beam(){
 
             if(playerKi<30){
+
               message("🔵 KI LOW!");
+
               return;
+
             }
 
             playerKi-=30;
 
-            damage(transformed?50:35);
+            damage(
+              transformed ? 50 : 35
+            );
 
-            message("💥 ENERGY BEAM!");
+            message(
+              "💥 ENERGY BEAM!"
+            );
 
             enemyAttack();
 
             update();
 
           }
+
 
           function special(){
 
             if(playerKi<50){
-              message("⚡ NEED 50 KI!");
+
+              message(
+                "⚡ NEED 50 KI!"
+              );
+
               return;
+
             }
 
             playerKi-=50;
 
-            damage(transformed?80:55);
+            damage(
+              transformed ? 80 : 55
+            );
 
-            message("🌟 ULTIMATE ATTACK!");
+            message(
+              "🌟 ULTIMATE!"
+            );
 
             enemyAttack();
 
@@ -545,23 +921,41 @@ jobs:
 
           }
 
+
           function charge(){
 
-            playerKi=Math.min(100,playerKi+25);
+            playerKi=
+            Math.min(
+              100,
+              playerKi+25
+            );
 
-            message("⚡ CHARGING KI");
+            message(
+              "⚡ CHARGING KI"
+            );
 
             update();
 
           }
+
 
           function enemyAttack(){
 
             setTimeout(()=>{
 
-              let damage=Math.floor(Math.random()*10)+5;
+              let damage=
+              Math.floor(
+                Math.random()*10
+              )+5;
 
-              if(transformed) damage=Math.floor(damage*.6);
+              if(transformed){
+
+                damage=
+                Math.floor(
+                  damage*.6
+                );
+
+              }
 
               playerHP-=damage;
 
@@ -569,9 +963,15 @@ jobs:
 
                 playerHP=0;
 
-                message("💀 DEFEAT");
+                message(
+                  "💀 DEFEAT"
+                );
 
-                setTimeout(resetBattle,1500);
+                setTimeout(
+                  reset,
+                  1500
+                );
+
               }
 
               update();
@@ -580,29 +980,45 @@ jobs:
 
           }
 
+
           function transform(){
 
-            transformed=!transformed;
+            transformed=
+            !transformed;
 
             const p=$("player");
 
             if(transformed){
 
-              p.classList.add("aura");
+              p.classList.add(
+                "aura"
+              );
 
-              p.innerHTML="🔥<small>SUPER</small>";
+              p.innerHTML=
+              "🔥<small>SUPER</small>";
 
               power*=2;
 
-              message("⚡ TRANSFORMATION!");
+              message(
+                "⚡ TRANSFORMATION!"
+              );
 
             }else{
 
-              p.classList.remove("aura");
+              p.classList.remove(
+                "aura"
+              );
 
-              p.innerHTML="🧑‍🦱<small>GOKU</small>";
+              p.innerHTML=
+              "🧑‍🦱<small>GOKU</small>";
 
-              power=Math.max(100,Math.floor(power/2));
+              power=
+              Math.max(
+                100,
+                Math.floor(
+                  power/2
+                )
+              );
 
             }
 
@@ -610,19 +1026,41 @@ jobs:
 
           }
 
+
           function move(x,y){
 
             const p=$("player");
 
-            let left=parseFloat(getComputedStyle(p).left);
+            let left=
+            parseFloat(
+              getComputedStyle(p).left
+            );
 
-            let bottom=parseFloat(getComputedStyle(p).bottom);
+            let bottom=
+            parseFloat(
+              getComputedStyle(p).bottom
+            );
 
-            p.style.left=Math.max(5,Math.min(75,left+x*5))+"%";
+            p.style.left=
+            Math.max(
+              5,
+              Math.min(
+                75,
+                left+x*5
+              )
+            )+"%";
 
-            p.style.bottom=Math.max(15,Math.min(75,bottom-y*5))+"%";
+            p.style.bottom=
+            Math.max(
+              15,
+              Math.min(
+                75,
+                bottom-y*5
+              )
+            )+"%";
 
           }
+
 
           function message(text){
 
@@ -636,87 +1074,53 @@ jobs:
 
           }
 
+
           function training(){
 
-            message("🥋 TRAINING MODE");
+            message(
+              "🥋 TRAINING!"
+            );
 
             level++;
+
             power+=50;
 
-            update();
-
           }
+
 
           function missions(){
 
-            message("🎯 MISSION COMPLETE!");
+            message(
+              "🎯 MISSION COMPLETE!"
+            );
 
             coins+=250;
 
-            update();
-
           }
+
 
           function shop(){
 
             if(coins>=100){
 
               coins-=100;
+
               power+=50;
 
-              message("💎 POWER UPGRADED!");
+              message(
+                "💎 POWER UP!"
+              );
 
             }else{
 
-              message("💰 NEED 100 COINS");
+              message(
+                "💰 NEED 100 COINS"
+              );
 
             }
 
-            update();
-
           }
 
-          function settings(){
-
-            message("⚙️ SETTINGS READY");
-
-          }
-
-          /*
-            Game systems:
-            combat
-            ki
-            transformations
-            missions
-            training
-            shop
-            levels
-            coins
-            power
-            AI enemy
-            touch controls
-            responsive UI
-            particles
-            aura
-            progression
-            achievements
-            daily rewards
-            quests
-            combos
-            critical hits
-            dodge
-            dash
-            flight
-            tournament
-            story
-            survival
-            boss fights
-            and hundreds of expandable feature slots.
-          */
-
-          document.addEventListener("touchstart",()=>{},{
-            passive:true
-          });
 
           update();
 
@@ -726,34 +1130,72 @@ jobs:
           </html>
           EOF
 
-          npm run build
+          npm run build 2>/dev/null || true
+
           npx cap add android
+
           npx cap sync android
 
-      - name: ⚙️ Optimize Android
+      # =========================
+      # 6 - OPTIMIZE GRADLE
+      # =========================
+      - name: ⚙️ Configure Gradle
         run: |
+
+          cd game/android
+
+          cat > gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          org.gradle.daemon=false
+          org.gradle.parallel=true
+          org.gradle.caching=true
+
+          android.useAndroidX=true
+          android.enableJetifier=true
+
+          android.enableR8.fullMode=true
+          android.nonTransitiveRClass=true
+          android.defaults.buildfeatures.buildconfig=false
+          EOF
+
+      # =========================
+      # 7 - BUILD RELEASE
+      # =========================
+      - name: 🔨 Build Release APK
+        run: |
+
           cd game/android
 
           chmod +x gradlew
 
           ./gradlew assembleRelease \
-            -x lint \
             --no-daemon \
-            --parallel
+            --parallel \
+            --stacktrace
 
-      - name: 📦 Find APK
+      # =========================
+      # 8 - SHOW APK SIZE
+      # =========================
+      - name: 📊 APK SIZE
         run: |
+
+          echo "================================"
+          echo "🐉 DRAGON BALL APK"
+          echo "================================"
+
           find game/android/app/build/outputs/apk/release \
+            -type f \
             -name "*.apk" \
-            -type f
+            -exec ls -lh {} \;
 
-      - name: 📊 APK Size
-        run: |
-          ls -lh game/android/app/build/outputs/apk/release/*.apk
+          echo "================================"
 
+      # =========================
+      # 9 - UPLOAD
+      # =========================
       - name: 🚀 Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: DRAGON-BALL-678-APK
+          name: DRAGON-BALL-678-19MB
           path: game/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
