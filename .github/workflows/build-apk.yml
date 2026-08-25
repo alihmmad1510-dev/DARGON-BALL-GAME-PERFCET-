@@ -1,4 +1,4 @@
-name: 🐉 DRAGON BALL STYLE - FINAL APK
+name: 🐉 DRAGON BALL SPARKING ZERO - FINAL APK
 
 on:
   workflow_dispatch:
@@ -10,24 +10,23 @@ permissions:
   contents: read
 
 jobs:
-
   build:
 
     runs-on: ubuntu-24.04
 
     steps:
 
-      # =========================================================
+      # ==========================================
       # CHECKOUT
-      # =========================================================
+      # ==========================================
 
       - name: 📥 Checkout
         uses: actions/checkout@v4
 
 
-      # =========================================================
+      # ==========================================
       # JAVA 21
-      # =========================================================
+      # ==========================================
 
       - name: ☕ Setup Java 21
         uses: actions/setup-java@v5
@@ -36,92 +35,75 @@ jobs:
           java-version: '21'
 
 
-      # =========================================================
+      # ==========================================
       # NODE 24
-      # =========================================================
+      # ==========================================
 
       - name: 🟢 Setup Node 24
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 24
+          cache: npm
 
 
-      # =========================================================
+      # ==========================================
       # ANDROID SDK
-      # =========================================================
+      # ==========================================
 
-      - name: 📱 Setup Android
+      - name: 📱 Setup Android SDK
         uses: android-actions/setup-android@v3
-
 
       - name: 🛠️ Install Android SDK
         run: |
-
           yes | sdkmanager --licenses || true
-
           sdkmanager "platform-tools"
           sdkmanager "platforms;android-35"
           sdkmanager "build-tools;35.0.0"
 
 
-      # =========================================================
-      # IMAGE TOOLS
-      # =========================================================
-
-      - name: 🎨 Install ImageMagick
-        run: |
-
-          sudo apt-get update
-
-          sudo apt-get install -y imagemagick
-
-
-      # =========================================================
+      # ==========================================
       # CREATE PROJECT
-      # =========================================================
+      # ==========================================
 
-      - name: 🎮 Create Android Game
+      - name: 🎮 Create Project
         run: |
 
           rm -rf game
 
           mkdir -p game
-
           cd game
-
 
           cat > package.json <<'EOF'
           {
-            "name": "ultimate-warriors",
+            "name": "dragon-ball-sparking-zero",
             "version": "1.0.0",
             "private": true,
-            "description": "Ultimate Warriors Android Game",
+            "scripts": {
+              "build": "echo build"
+            },
             "dependencies": {
-              "@capacitor/core": "^7.4.0",
-              "@capacitor/android": "^7.4.0",
-              "@capacitor/cli": "^7.4.0"
+              "@capacitor/core": "7.4.0",
+              "@capacitor/android": "7.4.0",
+              "@capacitor/cli": "7.4.0"
             }
           }
           EOF
 
-
           npm install --no-audit --no-fund
 
+          mkdir -p www
 
           npx cap init \
-            "ULTIMATE WARRIORS" \
+            "DRAGON BALL SPARKING ZERO" \
             "com.ultimatewarriors.game" \
             --web-dir=www
 
 
-          mkdir -p www
+      # ==========================================
+      # GAME
+      # ==========================================
 
-
-      # =========================================================
-      # CREATE GAME
-      # =========================================================
-
-      - name: 🐉 Create Full Game
+      - name: 🐉 Create Game
         run: |
 
           cd game
@@ -139,17 +121,14 @@ jobs:
             content="width=device-width,
             initial-scale=1,
             maximum-scale=1,
-            user-scalable=no,
-            viewport-fit=cover">
+            user-scalable=no">
 
-          <title>ULTIMATE WARRIORS</title>
+          <title>DRAGON BALL SPARKING ZERO</title>
 
           <style>
 
           *{
             box-sizing:border-box;
-            margin:0;
-            padding:0;
             user-select:none;
             -webkit-user-select:none;
             touch-action:none;
@@ -158,19 +137,18 @@ jobs:
           html,
           body{
 
+            margin:0;
             width:100%;
             height:100%;
-
             overflow:hidden;
 
             background:#000;
 
-            color:white;
-
             font-family:
             Arial,
-            Helvetica,
             sans-serif;
+
+            color:white;
           }
 
           #game{
@@ -181,97 +159,53 @@ jobs:
 
             overflow:hidden;
 
-            background:#02030a;
-          }
-
-          #canvas{
-
-            position:absolute;
-
-            inset:0;
-
-            width:100%;
-            height:100%;
-          }
-
-          #loading{
-
-            position:absolute;
-
-            inset:0;
-
-            z-index:100;
-
-            display:flex;
-
-            align-items:center;
-
-            justify-content:center;
-
-            flex-direction:column;
-
             background:
             radial-gradient(
+              circle at 50% 50%,
+              #19194a 0%,
+              #07071b 40%,
+              #000 100%
+            );
+          }
+
+          /* SPACE */
+
+          #space{
+
+            position:absolute;
+
+            inset:0;
+
+            opacity:.7;
+
+            background-image:
+            radial-gradient(
               circle,
-              #18113d,
-              #03030a 70%
+              white 1px,
+              transparent 1.5px
             );
+
+            background-size:
+            42px 42px;
+
+            animation:
+            stars 18s linear infinite;
           }
 
-          #loadingTitle{
+          @keyframes stars{
 
-            font-size:
-            clamp(30px,8vw,65px);
+            from{
+              transform:
+              translateY(0);
+            }
 
-            font-weight:900;
-
-            color:#ffd21c;
-
-            text-shadow:
-            0 0 12px #ff8a00,
-            0 0 30px #ff3600;
+            to{
+              transform:
+              translateY(42px);
+            }
           }
 
-          #loadingText{
-
-            margin-top:20px;
-
-            color:#66ddff;
-
-            font-size:18px;
-          }
-
-          #loadingBar{
-
-            width:min(80vw,420px);
-
-            height:12px;
-
-            margin-top:20px;
-
-            border:1px solid white;
-
-            border-radius:20px;
-
-            overflow:hidden;
-
-            background:#111;
-          }
-
-          #loadingProgress{
-
-            width:0%;
-
-            height:100%;
-
-            background:
-            linear-gradient(
-              90deg,
-              #00c8ff,
-              #7c3cff,
-              #ffd000
-            );
-          }
+          /* MENU */
 
           #menu{
 
@@ -279,9 +213,237 @@ jobs:
 
             inset:0;
 
-            z-index:20;
+            z-index:10;
+
+            display:flex;
+
+            flex-direction:column;
+
+            align-items:center;
+
+            justify-content:center;
+
+            gap:9px;
+
+            background:
+            radial-gradient(
+              circle,
+              rgba(30,30,100,.35),
+              rgba(0,0,0,.9)
+            );
+          }
+
+          .logo{
+
+            font-size:
+            clamp(
+              27px,
+              8vw,
+              65px
+            );
+
+            font-weight:900;
+
+            color:#ffd21a;
+
+            text-align:center;
+
+            text-shadow:
+            0 0 8px #ff9d00,
+            0 0 25px #ff5a00,
+            0 0 45px #ff2600;
+
+            margin-bottom:4px;
+          }
+
+          .sub{
+
+            font-size:
+            clamp(
+              14px,
+              4vw,
+              24px
+            );
+
+            font-weight:bold;
+
+            color:#62d9ff;
+
+            text-shadow:
+            0 0 15px #008cff;
+
+            margin-bottom:15px;
+          }
+
+          button{
+
+            min-width:210px;
+
+            min-height:48px;
+
+            border:2px solid #4edcff;
+
+            border-radius:13px;
+
+            color:white;
+
+            font-weight:bold;
+
+            font-size:16px;
+
+            background:
+            linear-gradient(
+              135deg,
+              #11113c,
+              #34106c
+            );
+
+            box-shadow:
+            0 0 10px #147bff;
+
+            transition:.1s;
+          }
+
+          button:active{
+
+            transform:scale(.92);
+
+            box-shadow:
+            0 0 25px #fff;
+          }
+
+          /* BATTLE */
+
+          #battle{
 
             display:none;
+
+            position:absolute;
+
+            inset:0;
+          }
+
+          #arena{
+
+            position:absolute;
+
+            inset:0;
+
+            background:
+
+            radial-gradient(
+              ellipse at 50% 80%,
+              #392400,
+              transparent 35%
+            ),
+
+            linear-gradient(
+              #050515,
+              #10102c
+            );
+          }
+
+          /* CAMERA */
+
+          #camera{
+
+            position:absolute;
+
+            inset:0;
+
+            transform:
+            scale(1);
+
+            transition:
+            transform .08s;
+          }
+
+          .shake{
+
+            animation:
+            cameraShake .18s;
+          }
+
+          @keyframes cameraShake{
+
+            0%{
+              transform:
+              translate(0,0)
+              scale(1);
+            }
+
+            25%{
+              transform:
+              translate(-7px,4px)
+              scale(1.03);
+            }
+
+            50%{
+              transform:
+              translate(7px,-5px)
+              scale(1.05);
+            }
+
+            75%{
+              transform:
+              translate(-4px,-3px)
+              scale(1.03);
+            }
+
+            100%{
+              transform:
+              translate(0,0)
+              scale(1);
+            }
+          }
+
+          /* 3D ARENA */
+
+          .floor{
+
+            position:absolute;
+
+            left:-20%;
+
+            right:-20%;
+
+            bottom:-25%;
+
+            height:60%;
+
+            transform:
+            perspective(500px)
+            rotateX(62deg);
+
+            background:
+            repeating-linear-gradient(
+              90deg,
+              rgba(70,110,160,.18)
+              0 2px,
+              transparent 2px 70px
+            ),
+
+            repeating-linear-gradient(
+              0deg,
+              rgba(70,110,160,.15)
+              0 2px,
+              transparent 2px 70px
+            );
+          }
+
+          /* FIGHTERS */
+
+          .fighter{
+
+            position:absolute;
+
+            width:110px;
+
+            height:160px;
+
+            bottom:27%;
+
+            display:flex;
 
             align-items:center;
 
@@ -289,200 +451,270 @@ jobs:
 
             flex-direction:column;
 
-            gap:10px;
+            font-size:75px;
+
+            z-index:4;
+
+            transition:
+            left .1s,
+            bottom .1s;
+          }
+
+          #player{
+
+            left:18%;
+
+            filter:
+            drop-shadow(
+              0 0 12px #00aaff
+            );
+          }
+
+          #enemy{
+
+            right:18%;
+
+            filter:
+            drop-shadow(
+              0 0 12px #ff3300
+            );
+          }
+
+          .aura{
+
+            animation:
+            aura .25s infinite alternate;
+          }
+
+          @keyframes aura{
+
+            from{
+
+              filter:
+              drop-shadow(
+                0 0 8px #00aaff
+              )
+              drop-shadow(
+                0 0 20px #0055ff
+              );
+            }
+
+            to{
+
+              filter:
+              drop-shadow(
+                0 0 30px #fff
+              )
+              drop-shadow(
+                0 0 50px #00bfff
+              );
+            }
+          }
+
+          /* KI BLAST */
+
+          .blast{
+
+            position:absolute;
+
+            width:35px;
+
+            height:35px;
+
+            border-radius:50%;
 
             background:
             radial-gradient(
-              circle at 50% 40%,
-              rgba(50,30,130,.65),
-              rgba(0,0,0,.82) 70%
-            );
-          }
-
-          .logo{
-
-            font-size:
-            clamp(35px,10vw,75px);
-
-            font-weight:1000;
-
-            letter-spacing:2px;
-
-            color:#ffd21c;
-
-            text-align:center;
-
-            text-shadow:
-            0 0 8px #ff9700,
-            0 0 25px #ff3000,
-            0 0 50px #ff1500;
-          }
-
-          .sub{
-
-            color:#65dcff;
-
-            font-weight:bold;
-
-            letter-spacing:4px;
-
-            margin-bottom:18px;
-          }
-
-          .menuButton{
-
-            width:min(82vw,300px);
-
-            height:50px;
-
-            border-radius:14px;
-
-            border:2px solid #48d9ff;
-
-            color:white;
-
-            font-size:17px;
-
-            font-weight:bold;
-
-            background:
-            linear-gradient(
-              135deg,
-              #11144a,
-              #37106c
+              circle,
+              white,
+              #48dfff,
+              #185dff,
+              transparent
             );
 
             box-shadow:
-            0 0 12px #267aff;
+            0 0 25px #00bfff,
+            0 0 50px #145eff;
 
+            z-index:6;
+
+            animation:
+            blast .35s linear forwards;
           }
 
-          .menuButton:active{
+          @keyframes blast{
 
-            transform:scale(.94);
+            from{
+              transform:scale(.5);
+              opacity:1;
+            }
+
+            to{
+              transform:
+              translateX(350px)
+              scale(1.8);
+              opacity:0;
+            }
           }
 
-          #hud{
+          /* HUD */
+
+          .hud{
 
             position:absolute;
 
-            inset:0;
+            top:8px;
 
-            z-index:10;
+            left:8px;
 
-            display:none;
+            right:8px;
 
-            pointer-events:none;
+            z-index:20;
           }
 
-          .top{
-
-            position:absolute;
-
-            top:10px;
-
-            left:10px;
-
-            right:10px;
+          .row{
 
             display:flex;
 
+            align-items:center;
+
             justify-content:space-between;
 
-            gap:10px;
-          }
-
-          .fighterHud{
-
-            width:44%;
-          }
-
-          .name{
-
-            font-size:12px;
-
-            font-weight:bold;
-
-            margin-bottom:4px;
+            gap:6px;
           }
 
           .bar{
 
-            height:17px;
+            width:40%;
+
+            height:18px;
 
             border:2px solid white;
 
             border-radius:10px;
 
-            background:#111;
-
             overflow:hidden;
 
-            margin-bottom:4px;
+            background:#090909;
           }
 
-          .fill{
+          .hp{
 
             width:100%;
 
             height:100%;
-          }
-
-          .health{
 
             background:
             linear-gradient(
               90deg,
-              #22ff53,
-              #00a532
+              #00ff55,
+              #00a52d
             );
           }
 
-          .energy{
+          .ki{
+
+            width:100%;
+
+            height:100%;
 
             background:
             linear-gradient(
               90deg,
-              #00cfff,
-              #693cff
+              #19caff,
+              #613cff
             );
           }
 
-          #combo{
+          /* CONTROLS */
+
+          #controls{
 
             position:absolute;
 
-            top:100px;
+            left:0;
 
-            left:50%;
+            right:0;
 
-            transform:translateX(-50%);
+            bottom:7px;
 
-            font-size:30px;
+            z-index:30;
 
-            font-weight:900;
+            display:flex;
 
-            color:#ffd21c;
+            justify-content:
+            space-between;
 
-            text-shadow:
-            0 0 15px #ff6a00;
+            align-items:end;
+
+            padding:7px;
           }
 
-          #message{
+          #dpad{
+
+            display:grid;
+
+            grid-template-columns:
+            repeat(3,50px);
+
+            gap:4px;
+          }
+
+          .action{
+
+            display:grid;
+
+            grid-template-columns:
+            repeat(2,70px);
+
+            gap:5px;
+          }
+
+          .control{
+
+            min-width:0;
+
+            width:50px;
+
+            height:50px;
+
+            padding:0;
+
+            border-radius:50%;
+
+            font-size:20px;
+          }
+
+          .action button{
+
+            width:70px;
+
+            min-width:70px;
+
+            height:48px;
+
+            min-height:48px;
+
+            font-size:11px;
+          }
+
+          #msg{
 
             position:absolute;
 
-            top:43%;
-
             left:50%;
+
+            top:48%;
 
             transform:
             translate(-50%,-50%);
 
-            font-size:
-            clamp(24px,7vw,55px);
+            z-index:50;
 
-            font-weight:1000;
+            font-size:
+            clamp(22px,6vw,45px);
+
+            font-weight:900;
 
             text-align:center;
 
@@ -490,185 +722,23 @@ jobs:
 
             text-shadow:
             0 0 10px #fff,
-            0 0 30px #38cfff;
-
-            white-space:nowrap;
+            0 0 30px #00aaff;
           }
 
-          #controls{
-
-            position:absolute;
-
-            inset:0;
-
-            z-index:30;
-
-            display:none;
-
-            pointer-events:none;
-          }
-
-          #joystick{
-
-            position:absolute;
-
-            left:20px;
-
-            bottom:25px;
-
-            width:130px;
-
-            height:130px;
-
-            border-radius:50%;
-
-            border:2px solid rgba(255,255,255,.35);
-
-            background:
-            rgba(30,50,100,.25);
-
-            pointer-events:auto;
-          }
-
-          #stick{
-
-            position:absolute;
-
-            width:60px;
-
-            height:60px;
-
-            left:33px;
-
-            top:33px;
-
-            border-radius:50%;
-
-            background:
-            radial-gradient(
-              circle,
-              #75eaff,
-              #3656ff
-            );
-
-            box-shadow:
-            0 0 20px #38cfff;
-          }
-
-          #buttons{
-
-            position:absolute;
-
-            right:15px;
-
-            bottom:18px;
-
-            width:220px;
-
-            display:grid;
-
-            grid-template-columns:
-            repeat(3,1fr);
-
-            gap:8px;
-
-            pointer-events:auto;
-          }
-
-          .gameButton{
-
-            height:55px;
-
-            border-radius:50%;
-
-            border:2px solid rgba(255,255,255,.7);
-
-            color:white;
-
-            font-size:11px;
-
-            font-weight:bold;
-
-            background:
-            radial-gradient(
-              circle,
-              #2a2870,
-              #120f32
-            );
-
-            box-shadow:
-            0 0 10px #315fff;
-          }
-
-          .gameButton:active{
-
-            transform:scale(.88);
-
-            background:#5035aa;
-          }
-
-          #attack{
-
-            width:70px;
-
-            height:70px;
-
-            grid-row:span 2;
-
-            border-color:#ffca27;
-
-            background:
-            radial-gradient(
-              circle,
-              #a33722,
-              #35100e
-            );
-
-            box-shadow:
-            0 0 20px #ff5100;
-          }
-
-          #pause{
-
-            position:absolute;
-
-            top:10px;
-
-            left:50%;
-
-            transform:translateX(-50%);
-
-            width:48px;
-
-            height:35px;
-
-            border-radius:10px;
-
-            border:1px solid white;
-
-            background:#1118;
-
-            color:white;
-
-            pointer-events:auto;
-          }
-
-          .hidden{
-
-            display:none!important;
-          }
+          /* RESPONSIVE */
 
           @media(
             orientation:portrait
           ){
 
-            #controls{
-
-              transform:scale(.86);
-
-              transform-origin:
-              bottom center;
+            .fighter{
+              bottom:34%;
             }
+
+            #controls{
+              bottom:3px;
+            }
+
           }
 
           </style>
@@ -679,215 +749,216 @@ jobs:
 
           <div id="game">
 
-            <canvas id="canvas"></canvas>
-
-
-            <div id="loading">
-
-              <div id="loadingTitle">
-                ULTIMATE WARRIORS
-              </div>
-
-              <div id="loadingText">
-                LOADING ENERGY...
-              </div>
-
-              <div id="loadingBar">
-                <div id="loadingProgress"></div>
-              </div>
-
-            </div>
-
+            <div id="space"></div>
 
             <div id="menu">
 
               <div class="logo">
-                ULTIMATE
-                <br>
-                WARRIORS
+                🐉 DRAGON BALL
               </div>
 
               <div class="sub">
-                ANIME POWER BATTLE
+                ⚡ SPARKING ZERO ⚡
               </div>
 
-              <button
-                class="menuButton"
-                onclick="startBattle()">
+              <button onclick="startGame()">
                 🔥 PLAY
               </button>
 
-              <button
-                class="menuButton"
-                onclick="startTraining()">
+              <button onclick="training()">
                 🎯 TRAINING
               </button>
 
-              <button
-                class="menuButton"
-                onclick="transform()">
+              <button onclick="missions()">
+                🏆 MISSIONS
+              </button>
+
+              <button onclick="transform()">
                 ⚡ TRANSFORM
               </button>
 
-              <button
-                class="menuButton"
-                onclick="saveGame()">
-                💾 SAVE
-              </button>
-
-              <button
-                class="menuButton"
-                onclick="showStats()">
-                📊 STATS
+              <button onclick="shop()">
+                💎 SHOP
               </button>
 
             </div>
 
+            <div id="battle">
 
-            <div id="hud">
+              <div id="camera">
 
-              <div class="top">
+                <div id="arena">
 
-                <div class="fighterHud">
-
-                  <div class="name">
-                    🟡 WARRIOR
-                  </div>
-
-                  <div class="bar">
-                    <div
-                      id="playerHp"
-                      class="fill health">
-                    </div>
-                  </div>
-
-                  <div class="bar">
-                    <div
-                      id="playerKi"
-                      class="fill energy">
-                    </div>
-                  </div>
+                  <div class="floor"></div>
 
                 </div>
 
+                <div class="hud">
+
+                  <div class="row">
+
+                    <div>
+                      🟠 GOKU
+                    </div>
+
+                    <div class="bar">
+                      <div
+                        id="php"
+                        class="hp">
+                      </div>
+                    </div>
+
+                    <div class="bar">
+                      <div
+                        id="ehp"
+                        class="hp">
+                      </div>
+                    </div>
+
+                    <div>
+                      🔴 ENEMY
+                    </div>
+
+                  </div>
+
+                  <br>
+
+                  <div class="row">
+
+                    <div class="bar">
+                      <div
+                        id="pki"
+                        class="ki">
+                      </div>
+                    </div>
+
+                    <div class="bar">
+                      <div
+                        id="eki"
+                        class="ki">
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
 
                 <div
-                  class="fighterHud"
-                  style="text-align:right">
+                  id="player"
+                  class="fighter">
 
-                  <div class="name">
-                    🔴 RIVAL
-                  </div>
+                  🧑‍🦱
 
-                  <div class="bar">
-                    <div
-                      id="enemyHp"
-                      class="fill health">
-                    </div>
-                  </div>
-
-                  <div class="bar">
-                    <div
-                      id="enemyKi"
-                      class="fill energy">
-                    </div>
-                  </div>
+                  <small>
+                    GOKU
+                  </small>
 
                 </div>
 
-              </div>
+                <div
+                  id="enemy"
+                  class="fighter">
 
+                  👹
 
-              <div id="combo">
-              </div>
+                  <small>
+                    ENEMY
+                  </small>
 
-              <div id="message">
-              </div>
+                </div>
 
-              <button
-                id="pause"
-                onclick="returnMenu()">
-                II
-              </button>
+                <div id="msg"></div>
 
-            </div>
+                <div id="controls">
 
+                  <div id="dpad">
 
-            <div id="controls">
+                    <button
+                      class="control">
+                    ↖
+                    </button>
 
-              <div id="joystick">
+                    <button
+                      class="control"
+                      onclick="move(0,-1)">
+                    ⬆
+                    </button>
 
-                <div id="stick"></div>
+                    <button
+                      class="control">
+                    ↗
+                    </button>
 
-              </div>
+                    <button
+                      class="control"
+                      onclick="move(-1,0)">
+                    ⬅
+                    </button>
 
+                    <button
+                      class="control">
+                    ●
+                    </button>
 
-              <div id="buttons">
+                    <button
+                      class="control"
+                      onclick="move(1,0)">
+                    ➡
+                    </button>
 
-                <button
-                  id="attack"
-                  class="gameButton"
-                  onclick="attack()">
-                  👊
-                  <br>
-                  ATTACK
-                </button>
+                    <button
+                      class="control">
+                    ↙
+                    </button>
 
-                <button
-                  class="gameButton"
-                  onclick="kiBlast()">
-                  ⚡
-                  <br>
-                  KI
-                </button>
+                    <button
+                      class="control"
+                      onclick="move(0,1)">
+                    ⬇
+                    </button>
 
-                <button
-                  class="gameButton"
-                  onclick="dash()">
-                  💨
-                  <br>
-                  DASH
-                </button>
+                    <button
+                      class="control">
+                    ↘
+                    </button>
 
-                <button
-                  class="gameButton"
-                  onclick="block()">
-                  🛡️
-                  <br>
-                  BLOCK
-                </button>
+                  </div>
 
-                <button
-                  class="gameButton"
-                  onclick="special()">
-                  💥
-                  <br>
-                  SPECIAL
-                </button>
+                  <div class="action">
 
-                <button
-                  class="gameButton"
-                  onclick="ultimate()">
-                  ☄️
-                  <br>
-                  ULTIMATE
-                </button>
+                    <button
+                      onclick="attack()">
+                      👊 ATK
+                    </button>
 
-                <button
-                  class="gameButton"
-                  onclick="charge()">
-                  🔋
-                  <br>
-                  CHARGE
-                </button>
+                    <button
+                      onclick="kiBlast()">
+                      💥 KI
+                    </button>
 
-                <button
-                  class="gameButton"
-                  onclick="transform()">
-                  🔥
-                  <br>
-                  FORM
-                </button>
+                    <button
+                      onclick="beam()">
+                      🔵 BEAM
+                    </button>
+
+                    <button
+                      onclick="charge()">
+                      ⚡ KI
+                    </button>
+
+                    <button
+                      onclick="transform()">
+                      🔥 FORM
+                    </button>
+
+                    <button
+                      onclick="special()">
+                      ☄️ ULT
+                    </button>
+
+                  </div>
+
+                </div>
 
               </div>
 
@@ -895,2017 +966,452 @@ jobs:
 
           </div>
 
-
           <script>
 
-          /*
-          =========================================================
-          ULTIMATE WARRIORS
-          Original lightweight anime-style battle engine.
-          =========================================================
-          */
-
-
-          const canvas =
-            document.getElementById("canvas");
-
-          const ctx =
-            canvas.getContext("2d");
-
-
-          let W=innerWidth;
-          let H=innerHeight;
-
-
-          function resize(){
-
-            W=innerWidth;
-            H=innerHeight;
-
-            canvas.width=W;
-            canvas.height=H;
-
-          }
-
-
-          addEventListener(
-            "resize",
-            resize
-          );
-
-          resize();
-
-
-          /*
-          =========================================================
-          GAME STATE
-          =========================================================
-          */
-
-          let gameRunning=false;
-
-          let training=false;
-
-          let player={
-
-            x:W*.28,
-
-            y:H*.60,
-
-            z:0,
-
-            hp:100,
-
-            ki:100,
-
-            speed:5,
-
-            attack:10,
-
-            defense:5,
-
-            power:100,
-
-            transformed:false,
-
-            blocking:false,
-
-            combo:0
-
-          };
-
-
-          let enemy={
-
-            x:W*.72,
-
-            y:H*.60,
-
-            z:0,
-
-            hp:100,
-
-            ki:100,
-
-            speed:2,
-
-            attack:7,
-
-            defense:3,
-
-            power:80
-
-          };
-
-
-          let coins=0;
-
-          let xp=0;
-
-          let level=1;
-
-          let camera={
-
-            x:0,
-
-            y:0,
-
-            shake:0,
-
-            zoom:1
-
-          };
-
-
-          let particles=[];
-
-          let attacks=[];
-
-          let keys={};
-
-          let joystick={
-
-            x:0,
-
-            y:0
-
-          };
-
-
-          /*
-          =========================================================
-          SAVE SYSTEM
-          =========================================================
-          */
-
-
-          function saveGame(){
-
-            const data={
-
-              coins,
-
-              xp,
-
-              level,
-
-              power:player.power,
-
-              transformed:player.transformed
-
-            };
-
+          let playerHP=100;
+          let enemyHP=100;
+
+          let playerKi=100;
+          let enemyKi=100;
+
+          let coins=
+            Number(
+              localStorage.getItem(
+                "coins"
+              ) || 0
+            );
+
+          let level=
+            Number(
+              localStorage.getItem(
+                "level"
+              ) || 1
+            );
+
+          let power=
+            Number(
+              localStorage.getItem(
+                "power"
+              ) || 100
+            );
+
+          let transformed=false;
+
+          const $=
+            id=>
+            document.getElementById(id);
+
+          function save(){
 
             localStorage.setItem(
-              "ultimate_warriors_save",
-              JSON.stringify(data)
+              "coins",
+              coins
             );
 
-
-            showMessage(
-              "💾 GAME SAVED"
+            localStorage.setItem(
+              "level",
+              level
             );
 
+            localStorage.setItem(
+              "power",
+              power
+            );
           }
 
+          function startGame(){
 
-          function loadGame(){
+            $("menu").style.display=
+              "none";
 
-            try{
+            $("battle").style.display=
+              "block";
 
-              const raw=
-                localStorage.getItem(
-                  "ultimate_warriors_save"
-                );
+            reset();
 
-
-              if(!raw)
-                return;
-
-
-              const data=
-                JSON.parse(raw);
-
-
-              coins=
-                data.coins||0;
-
-              xp=
-                data.xp||0;
-
-              level=
-                data.level||1;
-
-              player.power=
-                data.power||100;
-
-              player.transformed=
-                !!data.transformed;
-
-            }catch(e){
-
-              console.log(e);
-
-            }
-
+            message(
+              "🔥 BATTLE START!"
+            );
           }
 
+          function reset(){
 
-          /*
-          =========================================================
-          INPUT
-          =========================================================
-          */
+            playerHP=100;
 
+            enemyHP=100;
 
-          addEventListener(
-            "keydown",
-            e=>{
-              keys[e.key.toLowerCase()]=true;
-            }
-          );
+            playerKi=100;
 
+            enemyKi=100;
 
-          addEventListener(
-            "keyup",
-            e=>{
-              keys[e.key.toLowerCase()]=false;
-            }
-          );
-
-
-          /*
-          =========================================================
-          JOYSTICK
-          =========================================================
-          */
-
-
-          const joy=
-            document.getElementById(
-              "joystick"
-            );
-
-          const stick=
-            document.getElementById(
-              "stick"
-            );
-
-
-          let joyActive=false;
-
-
-          function joystickMove(e){
-
-            const rect=
-              joy.getBoundingClientRect();
-
-
-            const p=
-              e.touches?
-              e.touches[0]:
-              e;
-
-
-            let x=
-              p.clientX-
-              (rect.left+rect.width/2);
-
-
-            let y=
-              p.clientY-
-              (rect.top+rect.height/2);
-
-
-            const max=42;
-
-            const len=
-              Math.sqrt(
-                x*x+y*y
-              );
-
-
-            if(len>max){
-
-              x=
-                x/len*max;
-
-              y=
-                y/len*max;
-
-            }
-
-
-            stick.style.transform=
-              `translate(${x}px,${y}px)`;
-
-
-            joystick.x=
-              x/max;
-
-            joystick.y=
-              y/max;
-
+            update();
           }
-
-
-          function joystickEnd(){
-
-            joyActive=false;
-
-            joystick.x=0;
-            joystick.y=0;
-
-            stick.style.transform=
-              "translate(0,0)";
-
-          }
-
-
-          joy.addEventListener(
-            "touchstart",
-            e=>{
-              joyActive=true;
-              joystickMove(e);
-            }
-          );
-
-
-          joy.addEventListener(
-            "touchmove",
-            e=>{
-              if(joyActive)
-                joystickMove(e);
-            }
-          );
-
-
-          joy.addEventListener(
-            "touchend",
-            joystickEnd
-          );
-
-
-          /*
-          =========================================================
-          PARTICLES
-          =========================================================
-          */
-
-
-          function particle(
-            x,
-            y,
-            color="#fff",
-            power=5
-          ){
-
-            for(
-              let i=0;
-              i<power;
-              i++
-            ){
-
-              particles.push({
-
-                x,
-
-                y,
-
-                vx:
-                  (Math.random()-.5)
-                  *12,
-
-                vy:
-                  (Math.random()-.5)
-                  *12,
-
-                life:1,
-
-                size:
-                  Math.random()*7+2,
-
-                color
-
-              });
-
-            }
-
-          }
-
-
-          function updateParticles(){
-
-            for(
-              let i=particles.length-1;
-              i>=0;
-              i--
-            ){
-
-              const p=
-                particles[i];
-
-
-              p.x+=p.vx;
-
-              p.y+=p.vy;
-
-              p.vx*=.96;
-
-              p.vy*=.96;
-
-              p.life-=.025;
-
-
-              if(p.life<=0){
-
-                particles.splice(
-                  i,
-                  1
-                );
-
-              }
-
-            }
-
-          }
-
-
-          function drawParticles(){
-
-            for(
-              const p of particles
-            ){
-
-              ctx.globalAlpha=
-                p.life;
-
-              ctx.fillStyle=
-                p.color;
-
-              ctx.beginPath();
-
-              ctx.arc(
-                p.x+camera.x,
-                p.y+camera.y,
-                p.size,
-                0,
-                Math.PI*2
-              );
-
-              ctx.fill();
-
-            }
-
-            ctx.globalAlpha=1;
-
-          }
-
-
-          /*
-          =========================================================
-          ENERGY AURA
-          =========================================================
-          */
-
-
-          function aura(
-            x,
-            y,
-            size,
-            color
-          ){
-
-            const g=
-              ctx.createRadialGradient(
-                x,
-                y,
-                5,
-                x,
-                y,
-                size
-              );
-
-
-            g.addColorStop(
-              0,
-              color
-            );
-
-            g.addColorStop(
-              .25,
-              color+"aa"
-            );
-
-            g.addColorStop(
-              1,
-              "transparent"
-            );
-
-
-            ctx.fillStyle=g;
-
-            ctx.beginPath();
-
-            ctx.arc(
-              x,
-              y,
-              size,
-              0,
-              Math.PI*2
-            );
-
-            ctx.fill();
-
-          }
-
-
-          /*
-          =========================================================
-          3D STYLE CHARACTER
-          =========================================================
-          */
-
-
-          function drawWarrior(
-            f,
-            color,
-            glow
-          ){
-
-            const x=
-              f.x+camera.x;
-
-            const y=
-              f.y+camera.y;
-
-
-            const scale=
-              camera.zoom+
-              f.z*.001;
-
-
-            aura(
-              x,
-              y,
-              120*scale,
-              glow
-            );
-
-
-            ctx.save();
-
-
-            ctx.translate(
-              x,
-              y
-            );
-
-
-            ctx.scale(
-              scale,
-              scale
-            );
-
-
-            /*
-            Body
-            */
-
-            ctx.fillStyle=
-              color;
-
-            ctx.beginPath();
-
-            ctx.ellipse(
-              0,
-              35,
-              28,
-              55,
-              0,
-              0,
-              Math.PI*2
-            );
-
-            ctx.fill();
-
-
-            /*
-            Head
-            */
-
-            ctx.fillStyle=
-              "#ffd1a4";
-
-            ctx.beginPath();
-
-            ctx.arc(
-              0,
-              -25,
-              25,
-              0,
-              Math.PI*2
-            );
-
-            ctx.fill();
-
-
-            /*
-            Hair
-            */
-
-            ctx.fillStyle=
-              "#090909";
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-              -25,
-              -30
-            );
-
-            ctx.lineTo(
-              -18,
-              -65
-            );
-
-            ctx.lineTo(
-              -5,
-              -40
-            );
-
-            ctx.lineTo(
-              5,
-              -70
-            );
-
-            ctx.lineTo(
-              14,
-              -42
-            );
-
-            ctx.lineTo(
-              28,
-              -60
-            );
-
-            ctx.lineTo(
-              28,
-              -20
-            );
-
-            ctx.closePath();
-
-            ctx.fill();
-
-
-            /*
-            Arms
-            */
-
-            ctx.strokeStyle=
-              "#ffd1a4";
-
-            ctx.lineWidth=12;
-
-            ctx.lineCap=
-              "round";
-
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-              -22,
-              10
-            );
-
-            ctx.lineTo(
-              -55,
-              40
-            );
-
-            ctx.stroke();
-
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-              22,
-              10
-            );
-
-            ctx.lineTo(
-              55,
-              35
-            );
-
-            ctx.stroke();
-
-
-            /*
-            Legs
-            */
-
-            ctx.strokeStyle=
-              color;
-
-            ctx.lineWidth=16;
-
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-              -12,
-              70
-            );
-
-            ctx.lineTo(
-              -25,
-              110
-            );
-
-            ctx.stroke();
-
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-              12,
-              70
-            );
-
-            ctx.lineTo(
-              25,
-              110
-            );
-
-            ctx.stroke();
-
-
-            ctx.restore();
-
-          }
-
-
-          /*
-          =========================================================
-          ARENA
-          =========================================================
-          */
-
-
-          function drawArena(){
-
-            const gradient=
-              ctx.createLinearGradient(
-                0,
-                0,
-                0,
-                H
-              );
-
-
-            gradient.addColorStop(
-              0,
-              "#05061c"
-            );
-
-            gradient.addColorStop(
-              .55,
-              "#18125a"
-            );
-
-            gradient.addColorStop(
-              1,
-              "#030308"
-            );
-
-
-            ctx.fillStyle=
-              gradient;
-
-            ctx.fillRect(
-              0,
-              0,
-              W,
-              H
-            );
-
-
-            /*
-            Stars
-            */
-
-            for(
-              let i=0;
-              i<80;
-              i++
-            ){
-
-              const x=
-                (i*137)%W;
-
-              const y=
-                (i*73)%(
-                  H*.55
-                );
-
-
-              ctx.fillStyle=
-                "rgba(255,255,255,.7)";
-
-              ctx.fillRect(
-                x,
-                y,
-                2,
-                2
-              );
-
-            }
-
-
-            /*
-            3D floor
-            */
-
-            ctx.strokeStyle=
-              "rgba(70,190,255,.2)";
-
-            ctx.lineWidth=1;
-
-
-            for(
-              let i=-10;
-              i<=10;
-              i++
-            ){
-
-              const x=
-                W/2+i*80;
-
-
-              ctx.beginPath();
-
-              ctx.moveTo(
-                W/2,
-                H*.55
-              );
-
-              ctx.lineTo(
-                x,
-                H
-              );
-
-              ctx.stroke();
-
-            }
-
-
-            for(
-              let i=0;
-              i<10;
-              i++
-            ){
-
-              const y=
-                H*.55+
-                i*i*5;
-
-
-              ctx.beginPath();
-
-              ctx.moveTo(
-                0,
-                y
-              );
-
-              ctx.lineTo(
-                W,
-                y
-              );
-
-              ctx.stroke();
-
-            }
-
-          }
-
-
-          /*
-          =========================================================
-          CAMERA
-          =========================================================
-          */
-
-
-          function cameraShake(amount){
-
-            camera.shake=
-              Math.max(
-                camera.shake,
-                amount
-              );
-
-          }
-
-
-          function updateCamera(){
-
-            camera.x=
-              (W/2-
-              player.x)*.08;
-
-
-            camera.y=
-              (H*.55-
-              player.y)*.05;
-
-
-            if(camera.shake>0){
-
-              camera.x+=
-                (Math.random()-.5)
-                *camera.shake;
-
-              camera.y+=
-                (Math.random()-.5)
-                *camera.shake;
-
-              camera.shake*=.85;
-
-            }
-
-          }
-
-
-          /*
-          =========================================================
-          MOVEMENT
-          =========================================================
-          */
-
-
-          function movement(){
-
-            let dx=joystick.x;
-
-            let dy=joystick.y;
-
-
-            if(keys["a"])
-              dx=-1;
-
-            if(keys["d"])
-              dx=1;
-
-            if(keys["w"])
-              dy=-1;
-
-            if(keys["s"])
-              dy=1;
-
-
-            player.x+=
-              dx*player.speed;
-
-            player.y+=
-              dy*player.speed;
-
-
-            player.x=
-              Math.max(
-                50,
-                Math.min(
-                  W-50,
-                  player.x
-                )
-              );
-
-
-            player.y=
-              Math.max(
-                H*.30,
-                Math.min(
-                  H*.78,
-                  player.y
-                )
-              );
-
-          }
-
-
-          /*
-          =========================================================
-          ENEMY AI
-          =========================================================
-          */
-
-
-          function enemyAI(){
-
-            if(training)
-              return;
-
-
-            const dx=
-              player.x-
-              enemy.x;
-
-
-            const dy=
-              player.y-
-              enemy.y;
-
-
-            const distance=
-              Math.sqrt(
-                dx*dx+
-                dy*dy
-              );
-
-
-            if(distance>150){
-
-              enemy.x+=
-                dx/distance*
-                enemy.speed;
-
-              enemy.y+=
-                dy/distance*
-                enemy.speed;
-
-            }else{
-
-              if(
-                Math.random()<.015
-              ){
-
-                enemyHit();
-
-              }
-
-            }
-
-          }
-
-
-          function enemyHit(){
-
-            if(player.blocking){
-
-              player.hp-=
-                enemy.attack*.25;
-
-              particle(
-                player.x,
-                player.y,
-                "#60dfff",
-                8
-              );
-
-              return;
-
-            }
-
-
-            player.hp-=
-              enemy.attack;
-
-
-            particle(
-              player.x,
-              player.y,
-              "#ff4422",
-              12
-            );
-
-
-            cameraShake(12);
-
-            updateHud();
-
-          }
-
-
-          /*
-          =========================================================
-          ATTACKS
-          =========================================================
-          */
-
-
-          function attack(){
-
-            if(!gameRunning)
-              return;
-
-
-            const dx=
-              enemy.x-
-              player.x;
-
-            const dy=
-              enemy.y-
-              player.y;
-
-
-            const distance=
-              Math.sqrt(
-                dx*dx+
-                dy*dy
-              );
-
-
-            if(distance>230){
-
-              showMessage(
-                "TOO FAR!"
-              );
-
-              return;
-
-            }
-
-
-            const damage=
-              player.attack+
-              (player.transformed?
-              10:
-              0)+
-              Math.floor(
-                Math.random()*8
-              );
-
-
-            enemy.hp-=
-              Math.max(
-                1,
-                damage-
-                enemy.defense
-              );
-
-
-            player.combo++;
-
-            xp+=5;
-
-            particle(
-              enemy.x,
-              enemy.y,
-              "#ffd21c",
-              20
-            );
-
-
-            cameraShake(16);
-
-
-            showCombo();
-
-            checkEnemy();
-
-          }
-
-
-          function kiBlast(){
-
-            if(player.ki<10){
-
-              showMessage(
-                "NO KI!"
-              );
-
-              return;
-
-            }
-
-
-            player.ki-=10;
-
-
-            const dx=
-              enemy.x-
-              player.x;
-
-            const dy=
-              enemy.y-
-              player.y;
-
-
-            const len=
-              Math.sqrt(
-                dx*dx+
-                dy*dy
-              );
-
-
-            attacks.push({
-
-              x:player.x,
-
-              y:player.y,
-
-              vx:dx/len*15,
-
-              vy:dy/len*15,
-
-              life:80,
-
-              damage:
-                player.power*.25
-
-            });
-
-
-            particle(
-              player.x,
-              player.y,
-              "#4bdcff",
-              15
-            );
-
-
-            updateHud();
-
-          }
-
-
-          function special(){
-
-            if(player.ki<30){
-
-              showMessage(
-                "NEED 30 KI!"
-              );
-
-              return;
-
-            }
-
-
-            player.ki-=30;
-
-
-            enemy.hp-=
-              player.power*.45;
-
-
-            particle(
-              enemy.x,
-              enemy.y,
-              "#7c4dff",
-              45
-            );
-
-
-            cameraShake(25);
-
-            showMessage(
-              "💥 SPECIAL!"
-            );
-
-
-            checkEnemy();
-
-            updateHud();
-
-          }
-
-
-          function ultimate(){
-
-            if(player.ki<70){
-
-              showMessage(
-                "NEED 70 KI!"
-              );
-
-              return;
-
-            }
-
-
-            player.ki-=70;
-
-
-            enemy.hp-=
-              player.power*
-              (player.transformed?
-              1.6:
-              1.15);
-
-
-            for(
-              let i=0;
-              i<100;
-              i++
-            ){
-
-              particle(
-                enemy.x,
-                enemy.y,
-                i%2?
-                "#ffd21c":
-                "#4cdcff",
-                1
-              );
-
-            }
-
-
-            cameraShake(45);
-
-            showMessage(
-              "☄️ ULTIMATE!"
-            );
-
-
-            checkEnemy();
-
-            updateHud();
-
-          }
-
-
-          function dash(){
-
-            const dx=
-              enemy.x-
-              player.x;
-
-
-            player.x+=
-              Math.sign(dx)*100;
-
-
-            particle(
-              player.x,
-              player.y,
-              "#66ddff",
-              18
-            );
-
-
-            cameraShake(8);
-
-          }
-
-
-          function block(){
-
-            player.blocking=
-              !player.blocking;
-
-
-            showMessage(
-              player.blocking?
-              "🛡️ BLOCK":
-              "BLOCK OFF"
-            );
-
-          }
-
-
-          function charge(){
-
-            player.ki=
-              Math.min(
-                100,
-                player.ki+25
-              );
-
-
-            particle(
-              player.x,
-              player.y,
-              "#54dfff",
-              25
-            );
-
-
-            showMessage(
-              "⚡ CHARGING"
-            );
-
-
-            updateHud();
-
-          }
-
-
-          /*
-          =========================================================
-          TRANSFORMATION
-          =========================================================
-          */
-
-
-          function transform(){
-
-            player.transformed=
-              !player.transformed;
-
-
-            if(player.transformed){
-
-              player.power*=2;
-
-              player.speed+=2;
-
-              player.attack+=5;
-
-              showMessage(
-                "🔥 TRANSFORMATION!"
-              );
-
-
-              particle(
-                player.x,
-                player.y,
-                "#ffd21c",
-                70
-              );
-
-
-              cameraShake(30);
-
-            }else{
-
-              player.power=
-                Math.max(
-                  100,
-                  player.power/2
-                );
-
-              player.speed=
-                Math.max(
-                  5,
-                  player.speed-2
-                );
-
-              player.attack=
-                Math.max(
-                  10,
-                  player.attack-5
-                );
-
-              showMessage(
-                "FORM OFF"
-              );
-
-            }
-
-
-            saveGame();
-
-          }
-
-
-          /*
-          =========================================================
-          ENEMY CHECK
-          =========================================================
-          */
-
-
-          function checkEnemy(){
-
-            if(enemy.hp<=0){
-
-              enemy.hp=0;
-
-              coins+=100;
-
-              xp+=50;
-
-              level+=
-                xp>=level*100?
-                1:
-                0;
-
-
-              showMessage(
-                "🏆 VICTORY!"
-              );
-
-
-              setTimeout(
-                resetBattle,
-                1600
-              );
-
-            }
-
-
-            updateHud();
-
-          }
-
-
-          function resetBattle(){
-
-            enemy.hp=100;
-
-            enemy.ki=100;
-
-            player.hp=100;
-
-            player.ki=100;
-
-            enemy.x=
-              W*.72;
-
-            enemy.y=
-              H*.60;
-
-            player.x=
-              W*.28;
-
-            player.y=
-              H*.60;
-
-            player.combo=0;
-
-            updateHud();
-
-            saveGame();
-
-          }
-
-
-          /*
-          =========================================================
-          HUD
-          =========================================================
-          */
-
-
-          function updateHud(){
-
-            document
-              .getElementById(
-                "playerHp"
-              )
-              .style.width=
-              Math.max(
-                0,
-                player.hp
-              )+"%";
-
-
-            document
-              .getElementById(
-                "playerKi"
-              )
-              .style.width=
-              Math.max(
-                0,
-                player.ki
-              )+"%";
-
-
-            document
-              .getElementById(
-                "enemyHp"
-              )
-              .style.width=
-              Math.max(
-                0,
-                enemy.hp
-              )+"%";
-
-
-            document
-              .getElementById(
-                "enemyKi"
-              )
-              .style.width=
-              Math.max(
-                0,
-                enemy.ki
-              )+"%";
-
-          }
-
-
-          function showCombo(){
-
-            const c=
-              document.getElementById(
-                "combo"
-              );
-
-
-            c.innerText=
-              player.combo>1?
-              player.combo+" HIT COMBO":
-              "";
-
-          }
-
-
-          function showMessage(text){
-
-            const m=
-              document.getElementById(
-                "message"
-              );
-
-
-            m.innerText=text;
-
-
-            setTimeout(
-              ()=>{
-                if(
-                  m.innerText===text
-                )
-                  m.innerText="";
-              },
-              900
-            );
-
-          }
-
-
-          function showStats(){
-
-            showMessage(
-              "LV "+level+
-              " • XP "+xp+
-              " • COINS "+coins
-            );
-
-          }
-
-
-          /*
-          =========================================================
-          GAME LOOP
-          =========================================================
-          */
-
 
           function update(){
 
-            if(!gameRunning)
-              return;
-
-
-            movement();
-
-            enemyAI();
-
-            updateCamera();
-
-            updateParticles();
-
-
-            for(
-              let i=attacks.length-1;
-              i>=0;
-              i--
-            ){
-
-              const a=
-                attacks[i];
-
-
-              a.x+=a.vx;
-
-              a.y+=a.vy;
-
-              a.life--;
-
-
-              particle(
-                a.x,
-                a.y,
-                "#4bdcff",
-                1
-              );
-
-
-              const dx=
-                a.x-enemy.x;
-
-              const dy=
-                a.y-enemy.y;
-
-
-              if(
-                Math.sqrt(
-                  dx*dx+
-                  dy*dy
-                )<55
-              ){
-
-                enemy.hp-=
-                  a.damage;
-
-
-                cameraShake(18);
-
-
-                particle(
-                  enemy.x,
-                  enemy.y,
-                  "#5bdfff",
-                  25
-                );
-
-
-                attacks.splice(
-                  i,
-                  1
-                );
-
-
-                checkEnemy();
-
-                continue;
-
-              }
-
-
-              if(a.life<=0){
-
-                attacks.splice(
-                  i,
-                  1
-                );
-
-              }
-
-            }
-
-
-            if(
-              player.hp<=0
-            ){
-
-              player.hp=100;
-
-              showMessage(
-                "💀 DEFEAT"
-              );
-
-            }
-
-
-            updateHud();
-
-          }
-
-
-          function draw(){
-
-            drawArena();
-
-
-            drawWarrior(
-              enemy,
-              "#a52b36",
-              "#ff321f"
-            );
-
-
-            drawWarrior(
-              player,
-              player.transformed?
-              "#ff9d12":
-              "#3b55d8",
-              player.transformed?
-              "#ffd21c":
-              "#35bfff"
-            );
-
-
-            /*
-            Energy attacks
-            */
-
-            for(
-              const a of attacks
-            ){
-
-              ctx.fillStyle=
-                "#4ceaff";
-
-              ctx.shadowBlur=25;
-
-              ctx.shadowColor=
-                "#4ceaff";
-
-              ctx.beginPath();
-
-              ctx.arc(
-                a.x+camera.x,
-                a.y+camera.y,
-                13,
+            $("php").style.width=
+              Math.max(
                 0,
-                Math.PI*2
-              );
+                playerHP
+              )+"%";
 
-              ctx.fill();
+            $("ehp").style.width=
+              Math.max(
+                0,
+                enemyHP
+              )+"%";
 
-              ctx.shadowBlur=0;
+            $("pki").style.width=
+              Math.max(
+                0,
+                playerKi
+              )+"%";
 
-            }
+            $("eki").style.width=
+              Math.max(
+                0,
+                enemyKi
+              )+"%";
 
-
-            drawParticles();
-
+            save();
           }
 
+          function shake(){
 
-          function loop(){
+            const c=$("camera");
+
+            c.classList.remove(
+              "shake"
+            );
+
+            void c.offsetWidth;
+
+            c.classList.add(
+              "shake"
+            );
+          }
+
+          function damage(amount){
+
+            enemyHP-=amount;
+
+            shake();
+
+            if(enemyHP<=0){
+
+              enemyHP=0;
+
+              coins+=100;
+
+              level++;
+
+              power+=20;
+
+              message(
+                "🏆 VICTORY!"
+              );
+
+              save();
+
+              setTimeout(
+                reset,
+                1400
+              );
+            }
 
             update();
+          }
 
-            draw();
+          function attack(){
 
-            requestAnimationFrame(
-              loop
+            damage(
+              transformed
+              ? 20
+              : 10
             );
 
+            enemyAttack();
           }
 
+          function kiBlast(){
 
-          /*
-          =========================================================
-          MENUS
-          =========================================================
-          */
+            if(playerKi<10){
 
+              message(
+                "⚡ NO KI!"
+              );
 
-          function startBattle(){
+              return;
+            }
 
-            training=false;
+            playerKi-=10;
 
-            gameRunning=true;
-
-            document
-              .getElementById(
-                "menu"
-              )
-              .style.display="none";
-
-
-            document
-              .getElementById(
-                "hud"
-              )
-              .style.display="block";
-
-
-            document
-              .getElementById(
-                "controls"
-              )
-              .style.display="block";
-
-
-            resetBattle();
-
-            showMessage(
-              "🔥 BATTLE START!"
+            damage(
+              transformed
+              ? 30
+              : 18
             );
 
+            enemyAttack();
+
+            update();
           }
 
+          function beam(){
 
-          function startTraining(){
+            if(playerKi<30){
 
-            training=true;
+              message(
+                "🔵 KI LOW!"
+              );
 
-            gameRunning=true;
+              return;
+            }
 
-            document
-              .getElementById(
-                "menu"
-              )
-              .style.display="none";
+            playerKi-=30;
 
-
-            document
-              .getElementById(
-                "hud"
-              )
-              .style.display="block";
-
-
-            document
-              .getElementById(
-                "controls"
-              )
-              .style.display="block";
-
-
-            resetBattle();
-
-            showMessage(
-              "🎯 TRAINING MODE"
+            damage(
+              transformed
+              ? 55
+              : 35
             );
 
+            shake();
+
+            message(
+              "💥 ENERGY BEAM!"
+            );
+
+            enemyAttack();
+
+            update();
           }
 
+          function special(){
 
-          function returnMenu(){
+            if(playerKi<50){
 
-            gameRunning=false;
+              message(
+                "⚡ NEED 50 KI!"
+              );
 
-            document
-              .getElementById(
-                "hud"
-              )
-              .style.display="none";
+              return;
+            }
 
+            playerKi-=50;
 
-            document
-              .getElementById(
-                "controls"
-              )
-              .style.display="none";
+            damage(
+              transformed
+              ? 85
+              : 60
+            );
 
+            shake();
 
-            document
-              .getElementById(
-                "menu"
-              )
-              .style.display="flex";
+            message(
+              "🌟 ULTIMATE ATTACK!"
+            );
 
+            enemyAttack();
 
-            saveGame();
-
+            update();
           }
 
+          function charge(){
 
-          /*
-          =========================================================
-          LOADING
-          =========================================================
-          */
+            playerKi=
+              Math.min(
+                100,
+                playerKi+25
+              );
 
+            message(
+              "⚡ CHARGING KI"
+            );
 
-          loadGame();
+            update();
+          }
 
+          function enemyAttack(){
 
-          let progress=0;
+            setTimeout(()=>{
 
+              if(enemyHP<=0)
+                return;
 
-          const loadingTimer=
-            setInterval(
-              ()=>{
+              let d=
+                Math.floor(
+                  Math.random()*10
+                )+5;
 
-                progress+=5;
+              if(transformed)
+                d*=0.6;
 
+              playerHP-=d;
 
-                document
-                  .getElementById(
-                    "loadingProgress"
+              if(playerHP<=0){
+
+                playerHP=0;
+
+                message(
+                  "💀 DEFEAT"
+                );
+
+                setTimeout(
+                  reset,
+                  1400
+                );
+              }
+
+              update();
+
+            },350);
+          }
+
+          function transform(){
+
+            transformed=
+              !transformed;
+
+            const p=$("player");
+
+            if(transformed){
+
+              p.classList.add(
+                "aura"
+              );
+
+              p.innerHTML=
+                "🔥<small>SUPER</small>";
+
+              power*=2;
+
+              message(
+                "⚡ TRANSFORMATION!"
+              );
+
+            }else{
+
+              p.classList.remove(
+                "aura"
+              );
+
+              p.innerHTML=
+                "🧑‍🦱<small>GOKU</small>";
+
+              power=
+                Math.max(
+                  100,
+                  Math.floor(
+                    power/2
                   )
-                  .style.width=
-                  progress+"%";
+                );
 
+              message(
+                "NORMAL FORM"
+              );
+            }
 
-                if(progress>=100){
+            update();
+          }
 
-                  clearInterval(
-                    loadingTimer
-                  );
+          function move(x,y){
 
+            const p=$("player");
 
-                  setTimeout(
-                    ()=>{
+            let left=
+              parseFloat(
+                getComputedStyle(p)
+                .left
+              );
 
-                      document
-                        .getElementById(
-                          "loading"
-                        )
-                        .style.display=
-                        "none";
+            let bottom=
+              parseFloat(
+                getComputedStyle(p)
+                .bottom
+              );
 
+            p.style.left=
+              Math.max(
+                5,
+                Math.min(
+                  80,
+                  left+x*5
+                )
+              )+"%";
 
-                      document
-                        .getElementById(
-                          "menu"
-                        )
-                        .style.display=
-                        "flex";
+            p.style.bottom=
+              Math.max(
+                15,
+                Math.min(
+                  75,
+                  bottom-y*5
+                )
+              )+"%";
+          }
 
-                    },
-                    400
-                  );
+          function message(text){
 
-                }
+            $("msg").innerText=text;
 
-              },
-              60
+            setTimeout(()=>{
+
+              $("msg").innerText="";
+
+            },1000);
+          }
+
+          function training(){
+
+            coins+=50;
+
+            power+=25;
+
+            level++;
+
+            save();
+
+            message(
+              "🎯 TRAINING COMPLETE!"
             );
+          }
 
+          function missions(){
 
-          loop();
+            coins+=250;
+
+            level++;
+
+            save();
+
+            message(
+              "🏆 MISSION COMPLETE!"
+            );
+          }
+
+          function shop(){
+
+            if(coins>=100){
+
+              coins-=100;
+
+              power+=50;
+
+              save();
+
+              message(
+                "💎 POWER UP!"
+              );
+
+            }else{
+
+              message(
+                "💰 NEED 100 COINS"
+              );
+            }
+          }
+
+          update();
 
           </script>
 
@@ -2915,11 +1421,11 @@ jobs:
           EOF
 
 
-      # =========================================================
+      # ==========================================
       # ADD ANDROID
-      # =========================================================
+      # ==========================================
 
-      - name: 📱 Add Capacitor Android
+      - name: 📱 Add Android
         run: |
 
           cd game
@@ -2929,131 +1435,272 @@ jobs:
           npx cap sync android
 
 
-      # =========================================================
-      # APP ICON - BLACK + GOLDEN G
-      # =========================================================
+      # ==========================================
+      # CREATE GOLDEN G ICON
+      # ==========================================
 
       - name: 🖤 Create Golden G Icon
         run: |
 
           cd game
 
-          mkdir -p icon
+          python3 -m pip install --quiet pillow
 
-          cat > icon/icon.svg <<'EOF'
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="512"
-            height="512"
-            viewBox="0 0 512 512">
+          cat > create_icon.py <<'PY'
+          from PIL import Image, ImageDraw
 
-            <rect
-              width="512"
-              height="512"
-              fill="#000000"/>
+          SIZE = 512
 
-            <circle
-              cx="256"
-              cy="256"
-              r="175"
-              fill="#ffc515"/>
+          img = Image.new(
+              "RGBA",
+              (SIZE, SIZE),
+              (0,0,0,255)
+          )
 
-            <circle
-              cx="256"
-              cy="256"
-              r="112"
-              fill="#000000"/>
+          draw = ImageDraw.Draw(img)
 
-            <rect
-              x="250"
-              y="245"
-              width="145"
-              height="55"
-              rx="12"
-              fill="#ffc515"/>
+          cx = SIZE // 2
+          cy = SIZE // 2
 
-            <rect
-              x="330"
-              y="220"
-              width="70"
-              height="55"
-              fill="#000000"/>
+          # Golden G
+          outer = 175
+          inner = 112
 
-            <circle
-              cx="256"
-              cy="256"
-              r="190"
-              fill="none"
-              stroke="#ffc515"
-              stroke-width="5"
-              opacity=".45"/>
+          draw.ellipse(
+              (
+                  cx-outer,
+                  cy-outer,
+                  cx+outer,
+                  cy+outer
+              ),
+              fill=(255,195,20,255)
+          )
 
-          </svg>
-          EOF
+          draw.ellipse(
+              (
+                  cx-inner,
+                  cy-inner,
+                  cx+inner,
+                  cy+inner
+              ),
+              fill=(0,0,0,255)
+          )
+
+          # G opening
+          draw.rectangle(
+              (
+                  cx,
+                  cy-18,
+                  cx+105,
+                  cy+25
+              ),
+              fill=(0,0,0,255)
+          )
+
+          # G bar
+          draw.rectangle(
+              (
+                  cx-5,
+                  cy-4,
+                  cx+100,
+                  cy+35
+              ),
+              fill=(255,195,20,255)
+          )
+
+          # Gold center
+          draw.rectangle(
+              (
+                  cx+30,
+                  cy-2,
+                  cx+75,
+                  cy+30
+              ),
+              fill=(255,195,20,255)
+          )
+
+          # subtle glow
+          for i in range(12):
+
+              r = outer + i*3
+
+              alpha = max(
+                  0,
+                  70-i*5
+              )
+
+              draw.ellipse(
+                  (
+                      cx-r,
+                      cy-r,
+                      cx+r,
+                      cy+r
+                  ),
+                  outline=(
+                      255,
+                      195,
+                      20,
+                      alpha
+                  ),
+                  width=3
+              )
+
+          img.save(
+              "icon.png"
+          )
+          PY
+
+          python3 create_icon.py
 
 
-          convert \
-            -background none \
-            icon/icon.svg \
-            -resize 48x48 \
-            android/app/src/main/res/mipmap-mdpi/icon.png
+      # ==========================================
+      # INSTALL IMAGE MAGICK
+      # ==========================================
 
-
-          convert \
-            -background none \
-            icon/icon.svg \
-            -resize 72x72 \
-            android/app/src/main/res/mipmap-hdpi/icon.png
-
-
-          convert \
-            -background none \
-            icon/icon.svg \
-            -resize 96x96 \
-            android/app/src/main/res/mipmap-xhdpi/icon.png
-
-
-          convert \
-            -background none \
-            icon/icon.svg \
-            -resize 144x144 \
-            android/app/src/main/res/mipmap-xxhdpi/icon.png
-
-
-          convert \
-            -background none \
-            icon/icon.svg \
-            -resize 192x192 \
-            android/app/src/main/res/mipmap-xxxhdpi/icon.png
-
-
-      # =========================================================
-      # CHANGE ANDROID ICON
-      # =========================================================
-
-      - name: 🖼️ Set Android Icon
+      - name: 🖼️ Install ImageMagick
         run: |
 
-          cd game/android
+          sudo apt-get update
 
-          find app/src/main \
-            -type f \
-            \( -name "*.xml" -o -name "*.kt" -o -name "*.java" \) \
-            -print0 |
-          xargs -0 sed -i \
-            's/@mipmap\/ic_launcher/@mipmap\/icon/g'
-
-          find app/src/main \
-            -type f \
-            \( -name "*.xml" -o -name "*.kt" -o -name "*.java" \) \
-            -print0 |
-          xargs -0 sed -i \
-            's/@mipmap\/ic_launcher_round/@mipmap\/icon/g'
+          sudo apt-get install -y imagemagick
 
 
-      # =========================================================
-      # ANDROID GRADLE CONFIG
-      # =========================================================
+      # ==========================================
+      # CREATE CORRECT ANDROID ICONS
+      # ==========================================
+
+      - name: 🎨 Install App Icons
+        run: |
+
+          cd game
+
+          RES="android/app/src/main/res"
+
+          mkdir -p \
+            "$RES/mipmap-mdpi" \
+            "$RES/mipmap-hdpi" \
+            "$RES/mipmap-xhdpi" \
+            "$RES/mipmap-xxhdpi" \
+            "$RES/mipmap-xxxhdpi"
+
+          convert icon.png \
+            -resize 48x48 \
+            "$RES/mipmap-mdpi/icon.png"
+
+          convert icon.png \
+            -resize 72x72 \
+            "$RES/mipmap-hdpi/icon.png"
+
+          convert icon.png \
+            -resize 96x96 \
+            "$RES/mipmap-xhdpi/icon.png"
+
+          convert icon.png \
+            -resize 144x144 \
+            "$RES/mipmap-xxhdpi/icon.png"
+
+          convert icon.png \
+            -resize 192x192 \
+            "$RES/mipmap-xxxhdpi/icon.png"
+
+          # ROUND ICON
+          convert icon.png \
+            -resize 48x48 \
+            "$RES/mipmap-mdpi/icon_round.png"
+
+          convert icon.png \
+            -resize 72x72 \
+            "$RES/mipmap-hdpi/icon_round.png"
+
+          convert icon.png \
+            -resize 96x96 \
+            "$RES/mipmap-xhdpi/icon_round.png"
+
+          convert icon.png \
+            -resize 144x144 \
+            "$RES/mipmap-xxhdpi/icon_round.png"
+
+          convert icon.png \
+            -resize 192x192 \
+            "$RES/mipmap-xxxhdpi/icon_round.png"
+
+
+      # ==========================================
+      # FIX MANIFEST
+      # ==========================================
+
+      - name: 🔧 Fix Android Manifest
+        run: |
+
+          cd game
+
+          python3 - <<'PY'
+
+          from pathlib import Path
+
+          p = Path(
+              "android/app/src/main/AndroidManifest.xml"
+          )
+
+          text = p.read_text()
+
+          text = text.replace(
+              "@mipmap/ic_launcher",
+              "@mipmap/icon"
+          )
+
+          text = text.replace(
+              "@mipmap/ic_launcher_round",
+              "@mipmap/icon_round"
+          )
+
+          text = text.replace(
+              "@mipmap/icon_round",
+              "@mipmap/icon_round"
+          )
+
+          p.write_text(text)
+
+          PY
+
+
+      # ==========================================
+      # APP NAME
+      # ==========================================
+
+      - name: 🐉 Set App Name
+        run: |
+
+          cd game
+
+          python3 - <<'PY'
+
+          from pathlib import Path
+
+          p=Path(
+            "android/app/src/main/res/values/strings.xml"
+          )
+
+          p.parent.mkdir(
+            parents=True,
+            exist_ok=True
+          )
+
+          p.write_text(
+          '''<?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">DRAGON BALL SPARKING ZERO</string>
+              <string name="title_activity_main">DRAGON BALL SPARKING ZERO</string>
+          </resources>
+          '''
+          )
+
+          PY
+
+
+      # ==========================================
+      # GRADLE SETTINGS
+      # ==========================================
 
       - name: ⚙️ Configure Gradle
         run: |
@@ -3070,23 +1717,9 @@ jobs:
           EOF
 
 
-      # =========================================================
-      # RELEASE SETTINGS
-      # =========================================================
-
-      - name: 🔧 Configure Release
-        run: |
-
-          cd game/android
-
-          sed -i \
-            's/minifyEnabled false/minifyEnabled true/g' \
-            app/build.gradle
-
-
-      # =========================================================
-      # SIGNING KEY
-      # =========================================================
+      # ==========================================
+      # CREATE SIGNING KEY
+      # ==========================================
 
       - name: 🔐 Create Release Key
         run: |
@@ -3096,20 +1729,19 @@ jobs:
           keytool \
             -genkeypair \
             -v \
-            -keystore game/keystore/ultimate.jks \
-            -alias ultimate \
+            -keystore game/keystore/dragonball.jks \
+            -alias dragonball \
             -keyalg RSA \
             -keysize 2048 \
             -validity 10000 \
-            -storepass ultimate123 \
-            -keypass ultimate123 \
-            -dname \
-            "CN=Ultimate Warriors, OU=Game, O=Ultimate Warriors, C=SA"
+            -storepass dragonball123 \
+            -keypass dragonball123 \
+            -dname "CN=Dragon Ball Sparking Zero, OU=Game, O=Ultimate Warriors, L=Saudi Arabia, ST=Asir, C=SA"
 
 
-      # =========================================================
+      # ==========================================
       # BUILD
-      # =========================================================
+      # ==========================================
 
       - name: 🔨 Build Release APK
         run: |
@@ -3124,9 +1756,9 @@ jobs:
             --stacktrace
 
 
-      # =========================================================
-      # SIGN APK
-      # =========================================================
+      # ==========================================
+      # SIGN
+      # ==========================================
 
       - name: 🔏 Sign APK
         run: |
@@ -3137,27 +1769,22 @@ jobs:
             -name "*.apk" \
             | head -n 1)
 
-
           if [ -z "$APK" ]; then
-
             echo "❌ APK NOT FOUND"
-
             exit 1
-
           fi
 
-
           apksigner sign \
-            --ks game/keystore/ultimate.jks \
-            --ks-key-alias ultimate \
-            --ks-pass pass:ultimate123 \
-            --key-pass pass:ultimate123 \
+            --ks game/keystore/dragonball.jks \
+            --ks-key-alias dragonball \
+            --ks-pass pass:dragonball123 \
+            --key-pass pass:dragonball123 \
             "$APK"
 
 
-      # =========================================================
+      # ==========================================
       # VERIFY
-      # =========================================================
+      # ==========================================
 
       - name: 🔍 Verify APK
         run: |
@@ -3168,25 +1795,23 @@ jobs:
             -name "*.apk" \
             | head -n 1)
 
-
           apksigner verify \
             --verbose \
             "$APK"
 
-
           echo ""
-          echo "======================================"
+          echo "===================================="
           echo "🐉 BUILD SUCCESS"
-          echo "======================================"
+          echo "===================================="
 
           ls -lh "$APK"
 
 
-      # =========================================================
-      # COPY FINAL APK
-      # =========================================================
+      # ==========================================
+      # RENAME
+      # ==========================================
 
-      - name: 📦 Prepare Final APK
+      - name: 🐉 Rename APK
         run: |
 
           APK=$(find \
@@ -3195,41 +1820,21 @@ jobs:
             -name "*.apk" \
             | head -n 1)
 
-
-          cp \
-            "$APK" \
-            "ULTIMATE-WARRIORS-FINAL.apk"
+          cp "$APK" \
+            "DRAGON-BALL-SPARKING-ZERO-FINAL.apk"
 
 
-      # =========================================================
-      # SIZE CHECK
-      # =========================================================
-
-      - name: 📏 APK Size
-        run: |
-
-          echo "======================================"
-          echo "📏 FINAL APK SIZE"
-          echo "======================================"
-
-          ls -lh \
-            ULTIMATE-WARRIORS-FINAL.apk
-
-          du -h \
-            ULTIMATE-WARRIORS-FINAL.apk
-
-
-      # =========================================================
+      # ==========================================
       # UPLOAD
-      # =========================================================
+      # ==========================================
 
-      - name: 🚀 Upload Final APK
+      - name: 🚀 Upload APK
         uses: actions/upload-artifact@v4
 
         with:
 
-          name: ULTIMATE-WARRIORS-FINAL-APK
+          name: DRAGON-BALL-SPARKING-ZERO-FINAL
 
-          path: ULTIMATE-WARRIORS-FINAL.apk
+          path: DRAGON-BALL-SPARKING-ZERO-FINAL.apk
 
           if-no-files-found: error
