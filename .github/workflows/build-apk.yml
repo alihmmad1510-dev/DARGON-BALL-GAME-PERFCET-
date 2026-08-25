@@ -26,7 +26,7 @@ jobs:
 
 
       # =========================
-      # JAVA 21
+      # JAVA
       # =========================
 
       - name: ☕ Java 21
@@ -37,24 +37,7 @@ jobs:
 
 
       # =========================
-      # ANDROID
-      # =========================
-
-      - name: 📱 Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: 🛠️ Android SDK Packages
-        run: |
-
-          sdkmanager "platform-tools"
-
-          sdkmanager "platforms;android-35"
-
-          sdkmanager "build-tools;35.0.0"
-
-
-      # =========================
-      # NODE 24
+      # NODE
       # =========================
 
       - name: 🟢 Node 24
@@ -64,26 +47,38 @@ jobs:
 
 
       # =========================
-      # CREATE GAME
+      # ANDROID SDK
       # =========================
 
-      - name: 🎮 Create Dragon Ball Game
+      - name: 📱 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 🛠️ Android Packages
+        run: |
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-35"
+          sdkmanager "build-tools;35.0.0"
+
+
+      # =========================
+      # CREATE PROJECT
+      # =========================
+
+      - name: 🎮 Create Project
         run: |
 
           mkdir -p game
 
           cd game
 
-
-          # -------------------------
-          # PACKAGE
-          # -------------------------
-
           cat > package.json <<'EOF'
           {
             "name": "dragon-ball-678",
             "version": "1.0.0",
             "private": true,
+            "scripts": {
+              "build": "echo build"
+            },
             "dependencies": {
               "@capacitor/core": "^7.4.0",
               "@capacitor/android": "^7.4.0",
@@ -92,50 +87,42 @@ jobs:
           }
           EOF
 
-
-          # -------------------------
-          # INSTALL
-          # -------------------------
-
-          npm install --omit=dev
-
-
-          # -------------------------
-          # CAPACITOR
-          # -------------------------
+          npm install
 
           npx cap init \
             "DRAGON BALL 678" \
             "com.goku.dragonball678" \
             --web-dir=www
 
-
-          # -------------------------
-          # WEB
-          # -------------------------
-
           mkdir -p www
 
+
+      # =========================
+      # GAME HTML
+      # =========================
+
+      - name: 🐉 Create Game
+        run: |
+
+          cd game
 
           cat > www/index.html <<'EOF'
 
           <!DOCTYPE html>
-
-          <html lang="ar">
+          <html lang="en">
 
           <head>
 
           <meta charset="UTF-8">
 
           <meta
-          name="viewport"
-          content="width=device-width,
-          initial-scale=1,
-          maximum-scale=1,
-          user-scalable=no">
+            name="viewport"
+            content="width=device-width,
+            initial-scale=1,
+            maximum-scale=1,
+            user-scalable=no">
 
           <title>DRAGON BALL 678</title>
-
 
           <style>
 
@@ -143,7 +130,6 @@ jobs:
             box-sizing:border-box;
             user-select:none;
           }
-
 
           html,
           body{
@@ -163,7 +149,6 @@ jobs:
 
           }
 
-
           #game{
 
             position:absolute;
@@ -182,7 +167,6 @@ jobs:
             );
 
           }
-
 
           #stars{
 
@@ -207,7 +191,6 @@ jobs:
 
           }
 
-
           @keyframes stars{
 
             from{
@@ -219,7 +202,6 @@ jobs:
             }
 
           }
-
 
           #menu{
 
@@ -241,7 +223,6 @@ jobs:
 
           }
 
-
           .title{
 
             font-size:
@@ -257,7 +238,6 @@ jobs:
 
           }
 
-
           .subtitle{
 
             color:#6edcff;
@@ -267,7 +247,6 @@ jobs:
             margin-bottom:10px;
 
           }
-
 
           button{
 
@@ -298,13 +277,11 @@ jobs:
 
           }
 
-
           button:active{
 
             transform:scale(.93);
 
           }
-
 
           #battle{
 
@@ -315,7 +292,6 @@ jobs:
             inset:0;
 
           }
-
 
           .hud{
 
@@ -330,7 +306,6 @@ jobs:
             z-index:5;
 
           }
-
 
           .bar{
 
@@ -350,7 +325,6 @@ jobs:
 
           }
 
-
           .hp{
 
             width:100%;
@@ -366,7 +340,6 @@ jobs:
 
           }
 
-
           .ki{
 
             width:100%;
@@ -381,22 +354,6 @@ jobs:
             );
 
           }
-
-
-          #arena{
-
-            position:absolute;
-
-            inset:0;
-
-            display:flex;
-
-            justify-content:center;
-
-            align-items:center;
-
-          }
-
 
           .fighter{
 
@@ -416,36 +373,31 @@ jobs:
 
             font-size:68px;
 
-            filter:
-            drop-shadow(
-              0 0 12px #40cfff
-            );
-
           }
-
 
           #player{
 
             left:20%;
-
-            bottom:28%;
-
-          }
-
-
-          #enemy{
-
-            right:20%;
-
             bottom:28%;
 
             filter:
             drop-shadow(
-              0 0 12px #ff452f
+              0 0 15px #35cfff
             );
 
           }
 
+          #enemy{
+
+            right:20%;
+            bottom:28%;
+
+            filter:
+            drop-shadow(
+              0 0 15px #ff452f
+            );
+
+          }
 
           .aura{
 
@@ -453,7 +405,6 @@ jobs:
             aura .35s infinite alternate;
 
           }
-
 
           @keyframes aura{
 
@@ -477,7 +428,6 @@ jobs:
 
           }
 
-
           #controls{
 
             position:absolute;
@@ -497,7 +447,6 @@ jobs:
 
           }
 
-
           .pad{
 
             display:grid;
@@ -509,7 +458,6 @@ jobs:
 
           }
 
-
           .action{
 
             display:grid;
@@ -520,7 +468,6 @@ jobs:
             gap:6px;
 
           }
-
 
           .small{
 
@@ -536,7 +483,6 @@ jobs:
 
           }
 
-
           .attack{
 
             min-width:75px;
@@ -548,7 +494,6 @@ jobs:
             font-size:11px;
 
           }
-
 
           #msg{
 
@@ -580,313 +525,239 @@ jobs:
 
           </head>
 
-
           <body>
-
 
           <div id="game">
 
-          <div id="stars"></div>
+            <div id="stars"></div>
 
+            <div id="menu">
 
-          <div id="menu">
+              <div class="title">
+                🐉 DRAGON BALL
+              </div>
 
-          <div class="title">
-          🐉 DRAGON BALL
-          </div>
+              <div class="subtitle">
+                ⚡ ULTIMATE WARRIORS
+              </div>
 
-          <div class="subtitle">
-          ⚡ ULTIMATE WARRIORS
-          </div>
+              <button onclick="startGame()">
+                🔥 PLAY
+              </button>
 
+              <button onclick="training()">
+                🥋 TRAINING
+              </button>
 
-          <button onclick="startGame()">
-          🔥 PLAY
-          </button>
+              <button onclick="missions()">
+                🎯 MISSIONS
+              </button>
 
+              <button onclick="transform()">
+                ⚡ TRANSFORM
+              </button>
 
-          <button onclick="training()">
-          🥋 TRAINING
-          </button>
+              <button onclick="shop()">
+                💎 SHOP
+              </button>
 
+            </div>
 
-          <button onclick="missions()">
-          🎯 MISSIONS
-          </button>
+            <div id="battle">
 
+              <div class="hud">
 
-          <button onclick="transform()">
-          ⚡ TRANSFORM
-          </button>
+                <div class="bar">
 
+                  <div
+                    id="php"
+                    class="hp">
+                  </div>
 
-          <button onclick="shop()">
-          💎 SHOP
-          </button>
+                </div>
 
-          </div>
+                🟠 GOKU
 
+                <span style="float:right">
+                  🔴 ENEMY
+                </span>
 
-          <div id="battle">
+                <div
+                  class="bar"
+                  style="float:right">
 
+                  <div
+                    id="ehp"
+                    class="hp">
+                  </div>
 
-          <div class="hud">
+                </div>
 
+                <br><br>
 
-          <div class="bar">
+                <div class="bar">
 
-          <div
-          id="php"
-          class="hp">
-          </div>
+                  <div
+                    id="pki"
+                    class="ki">
+                  </div>
 
-          </div>
+                </div>
 
+                <div
+                  class="bar"
+                  style="float:right">
 
-          🟠 GOKU
+                  <div
+                    id="eki"
+                    class="ki">
+                  </div>
 
+                </div>
 
-          <span style="float:right">
-          🔴 ENEMY
-          </span>
+              </div>
 
 
-          <div
-          class="bar"
-          style="float:right">
+              <div
+                id="player"
+                class="fighter">
 
-          <div
-          id="ehp"
-          class="hp">
-          </div>
+                🧑‍🦱
 
-          </div>
+                <small>
+                  GOKU
+                </small>
 
+              </div>
 
-          <br><br>
 
+              <div
+                id="enemy"
+                class="fighter">
 
-          <div class="bar">
+                👹
 
-          <div
-          id="pki"
-          class="ki">
-          </div>
+                <small>
+                  ENEMY
+                </small>
 
-          </div>
+              </div>
 
 
-          <div
-          class="bar"
-          style="float:right">
+              <div id="msg"></div>
 
-          <div
-          id="eki"
-          class="ki">
-          </div>
 
-          </div>
+              <div id="controls">
 
+                <div class="pad">
 
-          </div>
+                  <button class="small">
+                    ↖
+                  </button>
 
+                  <button
+                    class="small"
+                    onclick="move(0,-1)">
+                    ⬆
+                  </button>
 
-          <div id="arena">
+                  <button class="small">
+                    ↗
+                  </button>
 
+                  <button
+                    class="small"
+                    onclick="move(-1,0)">
+                    ⬅
+                  </button>
 
-          <div
-          id="player"
-          class="fighter">
+                  <button class="small">
+                    ●
+                  </button>
 
-          🧑‍🦱
+                  <button
+                    class="small"
+                    onclick="move(1,0)">
+                    ➡
+                  </button>
 
-          <small>
-          GOKU
-          </small>
+                  <button class="small">
+                    ↙
+                  </button>
 
-          </div>
+                  <button
+                    class="small"
+                    onclick="move(0,1)">
+                    ⬇
+                  </button>
 
+                  <button class="small">
+                    ↘
+                  </button>
 
-          <div
-          id="enemy"
-          class="fighter">
+                </div>
 
-          👹
 
-          <small>
-          ENEMY
-          </small>
+                <div class="action">
 
-          </div>
+                  <button
+                    class="attack"
+                    onclick="attack()">
+                    👊 ATTACK
+                  </button>
 
+                  <button
+                    class="attack"
+                    onclick="kiBlast()">
+                    💥 KI
+                  </button>
 
-          </div>
+                  <button
+                    class="attack"
+                    onclick="beam()">
+                    🌟 BEAM
+                  </button>
 
+                  <button
+                    class="attack"
+                    onclick="charge()">
+                    ⚡ CHARGE
+                  </button>
 
-          <div id="msg"></div>
+                  <button
+                    class="attack"
+                    onclick="transform()">
+                    🔥 FORM
+                  </button>
 
+                  <button
+                    class="attack"
+                    onclick="special()">
+                    ☄️ SPECIAL
+                  </button>
 
-          <div id="controls">
+                </div>
 
+              </div>
 
-          <div class="pad">
-
-
-          <button class="small">
-          ↖
-          </button>
-
-
-          <button
-          class="small"
-          onclick="move(0,-1)">
-          ⬆
-          </button>
-
-
-          <button class="small">
-          ↗
-          </button>
-
-
-          <button
-          class="small"
-          onclick="move(-1,0)">
-          ⬅
-          </button>
-
-
-          <button class="small">
-          ●
-          </button>
-
-
-          <button
-          class="small"
-          onclick="move(1,0)">
-          ➡
-          </button>
-
-
-          <button class="small">
-          ↙
-          </button>
-
-
-          <button
-          class="small"
-          onclick="move(0,1)">
-          ⬇
-          </button>
-
-
-          <button class="small">
-          ↘
-          </button>
-
-
-          </div>
-
-
-          <div class="action">
-
-
-          <button
-          class="attack"
-          onclick="attack()">
-          👊 ATTACK
-          </button>
-
-
-          <button
-          class="attack"
-          onclick="kiBlast()">
-          💥 KI
-          </button>
-
-
-          <button
-          class="attack"
-          onclick="beam()">
-          🌟 BEAM
-          </button>
-
-
-          <button
-          class="attack"
-          onclick="charge()">
-          ⚡ CHARGE
-          </button>
-
-
-          <button
-          class="attack"
-          onclick="transform()">
-          🔥 FORM
-          </button>
-
-
-          <button
-          class="attack"
-          onclick="special()">
-          ☄️ SPECIAL
-          </button>
-
-
-          </div>
-
-
-          </div>
-
-
-          </div>
-
+            </div>
 
           </div>
 
 
           <script>
 
-
           let playerHP=100;
-
           let enemyHP=100;
 
           let playerKi=100;
-
           let enemyKi=100;
 
           let level=1;
-
           let coins=0;
-
           let power=100;
 
           let transformed=false;
-
-
-          const features=[];
-
-
-          for(
-            let i=1;
-            i<=678;
-            i++
-          ){
-
-            features.push({
-
-              id:i,
-
-              unlocked:i<=20,
-
-              active:false,
-
-              level:1
-
-            });
-
-          }
 
 
           function $(id){
@@ -914,11 +785,9 @@ jobs:
           function reset(){
 
             playerHP=100;
-
             enemyHP=100;
 
             playerKi=100;
-
             enemyKi=100;
 
             update();
@@ -929,28 +798,28 @@ jobs:
           function update(){
 
             $("php").style.width=
-            Math.max(
-              0,
-              playerHP
-            )+"%";
+              Math.max(
+                0,
+                playerHP
+              )+"%";
 
             $("ehp").style.width=
-            Math.max(
-              0,
-              enemyHP
-            )+"%";
+              Math.max(
+                0,
+                enemyHP
+              )+"%";
 
             $("pki").style.width=
-            Math.max(
-              0,
-              playerKi
-            )+"%";
+              Math.max(
+                0,
+                playerKi
+              )+"%";
 
             $("eki").style.width=
-            Math.max(
-              0,
-              enemyKi
-            )+"%";
+              Math.max(
+                0,
+                enemyKi
+              )+"%";
 
           }
 
@@ -959,15 +828,12 @@ jobs:
 
             enemyHP-=amount;
 
-
             if(enemyHP<=0){
 
               enemyHP=0;
 
               coins+=100;
-
               level++;
-
               power+=20;
 
               message(
@@ -980,7 +846,6 @@ jobs:
               );
 
             }
-
 
             update();
 
@@ -1012,16 +877,13 @@ jobs:
 
             }
 
-
             playerKi-=10;
-
 
             damage(
               transformed
               ? 28
               : 17
             );
-
 
             enemyAttack();
 
@@ -1042,9 +904,7 @@ jobs:
 
             }
 
-
             playerKi-=30;
-
 
             damage(
               transformed
@@ -1052,11 +912,9 @@ jobs:
               : 35
             );
 
-
             message(
               "💥 ENERGY BEAM!"
             );
-
 
             enemyAttack();
 
@@ -1077,9 +935,7 @@ jobs:
 
             }
 
-
             playerKi-=50;
-
 
             damage(
               transformed
@@ -1087,11 +943,9 @@ jobs:
               : 55
             );
 
-
             message(
               "🌟 ULTIMATE!"
             );
-
 
             enemyAttack();
 
@@ -1103,16 +957,14 @@ jobs:
           function charge(){
 
             playerKi=
-            Math.min(
-              100,
-              playerKi+25
-            );
-
+              Math.min(
+                100,
+                playerKi+25
+              );
 
             message(
               "⚡ CHARGING KI"
             );
-
 
             update();
 
@@ -1124,23 +976,20 @@ jobs:
             setTimeout(()=>{
 
               let damage=
-              Math.floor(
-                Math.random()*10
-              )+5;
-
+                Math.floor(
+                  Math.random()*10
+                )+5;
 
               if(transformed){
 
                 damage=
-                Math.floor(
-                  damage*.6
-                );
+                  Math.floor(
+                    damage*.6
+                  );
 
               }
 
-
               playerHP-=damage;
-
 
               if(playerHP<=0){
 
@@ -1157,7 +1006,6 @@ jobs:
 
               }
 
-
               update();
 
             },300);
@@ -1168,12 +1016,10 @@ jobs:
           function transform(){
 
             transformed=
-            !transformed;
-
+              !transformed;
 
             const p=
-            $("player");
-
+              $("player");
 
             if(transformed){
 
@@ -1181,18 +1027,14 @@ jobs:
                 "aura"
               );
 
-
               p.innerHTML=
-              "🔥<small>SUPER</small>";
-
+                "🔥<small>SUPER</small>";
 
               power*=2;
-
 
               message(
                 "⚡ TRANSFORMATION!"
               );
-
 
             }else{
 
@@ -1200,21 +1042,18 @@ jobs:
                 "aura"
               );
 
-
               p.innerHTML=
-              "🧑‍🦱<small>GOKU</small>";
-
+                "🧑‍🦱<small>GOKU</small>";
 
               power=
-              Math.max(
-                100,
-                Math.floor(
-                  power/2
-                )
-              );
+                Math.max(
+                  100,
+                  Math.floor(
+                    power/2
+                  )
+                );
 
             }
-
 
             update();
 
@@ -1224,39 +1063,35 @@ jobs:
           function move(x,y){
 
             const p=
-            $("player");
-
+              $("player");
 
             let left=
-            parseFloat(
-              getComputedStyle(p).left
-            );
-
+              parseFloat(
+                getComputedStyle(p).left
+              );
 
             let bottom=
-            parseFloat(
-              getComputedStyle(p).bottom
-            );
-
+              parseFloat(
+                getComputedStyle(p).bottom
+              );
 
             p.style.left=
-            Math.max(
-              5,
-              Math.min(
-                75,
-                left+x*5
-              )
-            )+"%";
-
+              Math.max(
+                5,
+                Math.min(
+                  75,
+                  left+x*5
+                )
+              )+"%";
 
             p.style.bottom=
-            Math.max(
-              15,
-              Math.min(
-                75,
-                bottom-y*5
-              )
-            )+"%";
+              Math.max(
+                15,
+                Math.min(
+                  75,
+                  bottom-y*5
+                )
+              )+"%";
 
           }
 
@@ -1264,7 +1099,6 @@ jobs:
           function message(text){
 
             $("msg").innerText=text;
-
 
             setTimeout(()=>{
 
@@ -1282,7 +1116,6 @@ jobs:
             );
 
             level++;
-
             power+=50;
 
           }
@@ -1304,7 +1137,6 @@ jobs:
             if(coins>=100){
 
               coins-=100;
-
               power+=50;
 
               message(
@@ -1326,7 +1158,6 @@ jobs:
 
           </script>
 
-
           </body>
 
           </html>
@@ -1334,9 +1165,14 @@ jobs:
           EOF
 
 
-          # -------------------------
-          # ANDROID
-          # -------------------------
+      # =========================
+      # ADD ANDROID
+      # =========================
+
+      - name: 📱 Create Android Project
+        run: |
+
+          cd game
 
           npx cap add android
 
@@ -1344,7 +1180,7 @@ jobs:
 
 
       # =========================
-      # GRADLE CONFIG
+      # GRADLE
       # =========================
 
       - name: ⚙️ Configure Gradle
@@ -1366,15 +1202,11 @@ jobs:
 
           android.enableJetifier=true
 
-          android.nonTransitiveRClass=true
-
-          android.enableR8.fullMode=true
-
           EOF
 
 
       # =========================
-      # BUILD
+      # BUILD DEBUG APK
       # =========================
 
       - name: 🔨 Build APK
@@ -1384,24 +1216,46 @@ jobs:
 
           chmod +x gradlew
 
-          ./gradlew assembleRelease \
-            --no-daemon \
-            --parallel
+          ./gradlew assembleDebug \
+            --no-daemon
 
 
       # =========================
-      # SIZE
+      # CHECK APK
       # =========================
 
-      - name: 📊 Check APK Size
+      - name: 🔍 Check APK
         run: |
 
-          echo "🐉 APK RESULT"
+          APK="game/android/app/build/outputs/apk/debug/app-debug.apk"
 
-          find \
-          game/android/app/build/outputs/apk/release \
-          -name "*.apk" \
-          -exec ls -lh {} \;
+          if [ ! -f "$APK" ]; then
+
+            echo "❌ APK NOT FOUND"
+
+            exit 1
+
+          fi
+
+          echo "✅ APK FOUND"
+
+          ls -lh "$APK"
+
+          echo "📦 APK INFO"
+
+          aapt dump badging "$APK" | head -20
+
+
+      # =========================
+      # RENAME
+      # =========================
+
+      - name: 🐉 Rename APK
+        run: |
+
+          cp \
+            game/android/app/build/outputs/apk/debug/app-debug.apk \
+            DRAGON-BALL-678.apk
 
 
       # =========================
@@ -1415,7 +1269,6 @@ jobs:
 
           name: DRAGON-BALL-678-APK
 
-          path:
-            game/android/app/build/outputs/apk/release/*.apk
+          path: DRAGON-BALL-678.apk
 
           if-no-files-found: error
