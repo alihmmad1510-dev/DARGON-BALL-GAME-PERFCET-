@@ -1,40 +1,1511 @@
-name: Build APK
+name: 🐉 DRAGON BALL ULTIMATE WARRIORS - BUILD APK
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-      - develop
-  pull_request:
-    branches:
-      - main
-      - develop
+
+permissions:
+  contents: read
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-apk:
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
+      # =========================================================
+      # 1) Checkout
+      # =========================================================
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      # =========================================================
+      # 2) Java
+      # =========================================================
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
         with:
-          java-version: '11'
-          distribution: 'adopt'
+          distribution: temurin
+          java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v2
+      # =========================================================
+      # 3) Android SDK
+      # =========================================================
+      - name: 📱 Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Make Gradlew executable
-        run: chmod +x ./gradlew
+      - name: 🧰 Install Android SDK
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-35"
+          sdkmanager "build-tools;35.0.0"
 
-      - name: Build APK
-        run: ./gradlew assembleDebug
+      # =========================================================
+      # 4) Create complete Android project automatically
+      # =========================================================
+      - name: 🏗️ Create Android Project
+        shell: bash
+        run: |
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
+          rm -rf app gradle build.gradle settings.gradle gradle.properties
+          mkdir -p app/src/main/java/com/ultimatewarriors/game
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/mipmap-hdpi
+          mkdir -p app/src/main/res/mipmap-mdpi
+          mkdir -p app/src/main/res/mipmap-xhdpi
+          mkdir -p app/src/main/res/mipmap-xxhdpi
+          mkdir -p app/src/main/res/mipmap-xxxhdpi
+
+          # =====================================================
+          # settings.gradle
+          # =====================================================
+
+          cat > settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "DragonBallUltimateWarriors"
+          include(":app")
+          EOF
+
+          # =====================================================
+          # Root build.gradle
+          # =====================================================
+
+          cat > build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.6.1' apply false
+          }
+          EOF
+
+          # =====================================================
+          # gradle.properties
+          # =====================================================
+
+          cat > gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          android.nonTransitiveRClass=true
+          EOF
+
+          # =====================================================
+          # app/build.gradle
+          # =====================================================
+
+          cat > app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.ultimatewarriors.game'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId 'com.ultimatewarriors.game'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 1
+                  versionName '1.0'
+              }
+
+              buildTypes {
+                  debug {
+                      minifyEnabled false
+                  }
+
+                  release {
+                      minifyEnabled false
+                  }
+              }
+          }
+          EOF
+
+          # =====================================================
+          # AndroidManifest.xml
+          # =====================================================
+
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <application
+                  android:allowBackup="true"
+                  android:label="DRAGON BALL ULTIMATE WARRIORS"
+                  android:theme="@style/AppTheme"
+                  android:resizeableActivity="true">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:screenOrientation="landscape"
+                      android:exported="true">
+
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+
+                  </activity>
+
+              </application>
+
+          </manifest>
+          EOF
+
+          # =====================================================
+          # Theme
+          # =====================================================
+
+          mkdir -p app/src/main/res/values
+
+          cat > app/src/main/res/values/styles.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+
+              <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:windowFullscreen">true</item>
+                  <item name="android:windowActionModeOverlay">true</item>
+                  <item name="android:colorAccent">#FFFFFF</item>
+                  <item name="android:navigationBarColor">#000000</item>
+                  <item name="android:statusBarColor">#000000</item>
+              </style>
+
+          </resources>
+          EOF
+
+          # =====================================================
+          # MainActivity.kt
+          # =====================================================
+
+          cat > app/src/main/java/com/ultimatewarriors/game/MainActivity.kt <<'EOF'
+          package com.ultimatewarriors.game
+
+          import android.app.Activity
+          import android.os.Bundle
+          import android.graphics.*
+          import android.graphics.drawable.*
+          import android.view.*
+          import android.content.*
+          import kotlin.math.*
+          import kotlin.random.Random
+
+          class MainActivity : Activity() {
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+
+                  window.decorView.systemUiVisibility =
+                      View.SYSTEM_UI_FLAG_FULLSCREEN or
+                      View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                      View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+
+                  setContentView(UltimateWarriorsView(this))
+              }
+          }
+
+          class UltimateWarriorsView(context: Context) : View(context) {
+
+              private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+              private val text = Paint(Paint.ANTI_ALIAS_FLAG)
+
+              private val save =
+                  context.getSharedPreferences("ultimate_warriors_save", Context.MODE_PRIVATE)
+
+              private var screen = "menu"
+
+              private var playerHP = 1000f
+              private var enemyHP = 1000f
+
+              private var maxKi = 1000f
+              private var playerKi = 500f
+
+              private var level = save.getInt("level", 1)
+              private var xp = save.getInt("xp", 0)
+              private var coins = save.getInt("coins", 500)
+
+              private var attack = save.getInt("attack", 100)
+              private var defense = save.getInt("defense", 100)
+              private var speed = save.getInt("speed", 100)
+
+              private var transformed = false
+              private var locked = true
+
+              private var playerX = 350f
+              private var playerY = 650f
+
+              private var enemyX = 1100f
+              private var enemyY = 650f
+
+              private var cameraShake = 0f
+
+              private var attackTimer = 0f
+              private var specialTimer = 0f
+              private var ultimateTimer = 0f
+
+              private var message = ""
+              private var messageTimer = 0f
+
+              private var touchX = 0f
+              private var touchY = 0f
+
+              private var joyX = 0f
+              private var joyY = 0f
+
+              private var combo = 0
+              private var comboTimer = 0f
+
+              private var stage = 1
+
+              private var enemyName = "GALAXY WARRIOR"
+
+              private val stars = Array(100) {
+                  floatArrayOf(
+                      Random.nextFloat(),
+                      Random.nextFloat(),
+                      Random.nextFloat() * 3f + 1f
+                  )
+              }
+
+              init {
+                  text.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                  setBackgroundColor(Color.BLACK)
+              }
+
+              private fun saveGame() {
+                  save.edit()
+                      .putInt("level", level)
+                      .putInt("xp", xp)
+                      .putInt("coins", coins)
+                      .putInt("attack", attack)
+                      .putInt("defense", defense)
+                      .putInt("speed", speed)
+                      .apply()
+              }
+
+              override fun onDraw(canvas: Canvas) {
+                  super.onDraw(canvas)
+
+                  if (screen == "menu") {
+                      drawMenu(canvas)
+                  } else if (screen == "battle") {
+                      drawBattle(canvas)
+                  } else if (screen == "training") {
+                      drawTraining(canvas)
+                  } else if (screen == "characters") {
+                      drawCharacters(canvas)
+                  } else if (screen == "transformations") {
+                      drawTransformations(canvas)
+                  } else if (screen == "shop") {
+                      drawShop(canvas)
+                  } else if (screen == "settings") {
+                      drawSettings(canvas)
+                  }
+
+                  invalidate()
+              }
+
+              private fun bg(canvas: Canvas) {
+
+                  val w = width.toFloat()
+                  val h = height.toFloat()
+
+                  val gradient = LinearGradient(
+                      0f,
+                      0f,
+                      0f,
+                      h,
+                      Color.rgb(8, 8, 35),
+                      Color.rgb(55, 8, 75),
+                      Shader.TileMode.CLAMP
+                  )
+
+                  paint.shader = gradient
+                  canvas.drawRect(0f, 0f, w, h, paint)
+                  paint.shader = null
+
+                  for (s in stars) {
+                      paint.color = Color.WHITE
+                      paint.alpha = (120 + s[2] * 40).toInt().coerceAtMost(255)
+
+                      canvas.drawCircle(
+                          s[0] * w,
+                          s[1] * h,
+                          s[2],
+                          paint
+                      )
+                  }
+
+                  paint.alpha = 255
+              }
+
+              private fun title(canvas: Canvas, value: String, y: Float) {
+
+                  text.textSize = 48f
+                  text.textAlign = Paint.Align.CENTER
+
+                  text.color = Color.WHITE
+                  canvas.drawText(value, width / 2f + 4, y + 4, text)
+
+                  text.color = Color.rgb(255, 205, 40)
+                  canvas.drawText(value, width / 2f, y, text)
+              }
+
+              private fun button(
+                  canvas: Canvas,
+                  label: String,
+                  x: Float,
+                  y: Float,
+                  w: Float,
+                  h: Float
+              ) {
+
+                  paint.color = Color.argb(210, 15, 20, 50)
+                  canvas.drawRoundRect(
+                      x,
+                      y,
+                      x + w,
+                      y + h,
+                      22f,
+                      22f,
+                      paint
+                  )
+
+                  paint.style = Paint.Style.STROKE
+                  paint.strokeWidth = 3f
+                  paint.color = Color.rgb(255, 190, 40)
+                  canvas.drawRoundRect(
+                      x,
+                      y,
+                      x + w,
+                      y + h,
+                      22f,
+                      22f,
+                      paint
+                  )
+                  paint.style = Paint.Style.FILL
+
+                  text.textSize = 25f
+                  text.textAlign = Paint.Align.CENTER
+                  text.color = Color.WHITE
+
+                  canvas.drawText(
+                      label,
+                      x + w / 2,
+                      y + h / 2 + 9,
+                      text
+                  )
+              }
+
+              private fun drawMenu(canvas: Canvas) {
+
+                  bg(canvas)
+
+                  title(canvas, "DRAGON BALL", 75f)
+
+                  text.textSize = 30f
+                  text.textAlign = Paint.Align.CENTER
+                  text.color = Color.rgb(255, 90, 20)
+
+                  canvas.drawText(
+                      "ULTIMATE WARRIORS",
+                      width / 2f,
+                      115f,
+                      text
+                  )
+
+                  val bw = 250f
+                  val bh = 58f
+                  val gap = 12f
+
+                  val startX = width / 2f - bw / 2f
+
+                  button(canvas, "PLAY", startX, 150f, bw, bh)
+                  button(canvas, "STORY", startX, 220f, bw, bh)
+                  button(canvas, "BATTLE", startX, 290f, bw, bh)
+                  button(canvas, "TRAINING", startX, 360f, bw, bh)
+                  button(canvas, "CHARACTERS", startX, 430f, bw, bh)
+
+                  button(canvas, "TRANSFORMATIONS", 40f, 510f, 260f, bh)
+                  button(canvas, "SHOP", width - 300f, 510f, 260f, bh)
+
+                  button(canvas, "SETTINGS", width / 2f - 130f, 580f, 260f, bh)
+
+                  text.textSize = 18f
+                  text.color = Color.LTGRAY
+
+                  canvas.drawText(
+                      "LEVEL $level   •   XP $xp   •   COINS $coins",
+                      width / 2f,
+                      height - 20f,
+                      text
+                  )
+              }
+
+              private fun drawBattle(canvas: Canvas) {
+
+                  bg(canvas)
+
+                  val shakeX =
+                      if (cameraShake > 0f)
+                          Random.nextFloat() * cameraShake - cameraShake / 2
+                      else 0f
+
+                  val shakeY =
+                      if (cameraShake > 0f)
+                          Random.nextFloat() * cameraShake - cameraShake / 2
+                      else 0f
+
+                  canvas.save()
+                  canvas.translate(shakeX, shakeY)
+
+                  drawArena(canvas)
+
+                  drawWarrior(
+                      canvas,
+                      playerX,
+                      playerY,
+                      true
+                  )
+
+                  drawWarrior(
+                      canvas,
+                      enemyX,
+                      enemyY,
+                      false
+                  )
+
+                  drawBars(canvas)
+
+                  drawControls(canvas)
+
+                  canvas.restore()
+
+                  updateBattle()
+              }
+
+              private fun drawArena(canvas: Canvas) {
+
+                  paint.color = Color.rgb(30, 35, 60)
+
+                  canvas.drawRect(
+                      0f,
+                      height * .68f,
+                      width.toFloat(),
+                      height.toFloat(),
+                      paint
+                  )
+
+                  paint.color = Color.rgb(50, 55, 90)
+
+                  for (i in 0..10) {
+
+                      val x = i * width / 10f
+
+                      canvas.drawLine(
+                          width / 2f,
+                          height * .68f,
+                          x,
+                          height.toFloat(),
+                          paint
+                      )
+                  }
+
+                  text.textSize = 22f
+                  text.textAlign = Paint.Align.CENTER
+                  text.color = Color.WHITE
+
+                  canvas.drawText(
+                      "STAGE $stage • $enemyName",
+                      width / 2f,
+                      35f,
+                      text
+                  )
+              }
+
+              private fun aura(
+                  canvas: Canvas,
+                  x: Float,
+                  y: Float,
+                  radius: Float,
+                  transformed: Boolean
+              ) {
+
+                  val auraColor =
+                      if (transformed)
+                          Color.rgb(80, 190, 255)
+                      else
+                          Color.rgb(255, 170, 20)
+
+                  for (i in 5 downTo 1) {
+
+                      paint.color = auraColor
+                      paint.alpha = 15 + i * 10
+
+                      canvas.drawCircle(
+                          x,
+                          y,
+                          radius + i * 15,
+                          paint
+                      )
+                  }
+
+                  paint.alpha = 255
+              }
+
+              private fun drawWarrior(
+                  canvas: Canvas,
+                  x: Float,
+                  y: Float,
+                  player: Boolean
+              ) {
+
+                  val power = if (player && transformed) 1.4f else 1f
+
+                  aura(
+                      canvas,
+                      x,
+                      y - 90f,
+                      70f * power,
+                      player && transformed
+                  )
+
+                  paint.color =
+                      if (player)
+                          Color.rgb(255, 150, 40)
+                      else
+                          Color.rgb(170, 40, 240)
+
+                  canvas.drawCircle(
+                      x,
+                      y - 90f,
+                      45f * power,
+                      paint
+                  )
+
+                  paint.color =
+                      if (player)
+                          Color.rgb(40, 100, 230)
+                      else
+                          Color.rgb(70, 40, 100)
+
+                  canvas.drawRoundRect(
+                      x - 35f,
+                      y - 50f,
+                      x + 35f,
+                      y + 70f,
+                      20f,
+                      20f,
+                      paint
+                  )
+
+                  paint.color = Color.WHITE
+
+                  canvas.drawCircle(
+                      x - 15f,
+                      y - 95f,
+                      7f,
+                      paint
+                  )
+
+                  canvas.drawCircle(
+                      x + 15f,
+                      y - 95f,
+                      7f,
+                      paint
+                  )
+
+                  paint.strokeWidth = 12f
+                  paint.strokeCap = Paint.Cap.ROUND
+
+                  canvas.drawLine(
+                      x - 25f,
+                      y + 60f,
+                      x - 50f,
+                      y + 120f,
+                      paint
+                  )
+
+                  canvas.drawLine(
+                      x + 25f,
+                      y + 60f,
+                      x + 50f,
+                      y + 120f,
+                      paint
+                  )
+
+                  paint.strokeCap = Paint.Cap.BUTT
+              }
+
+              private fun bar(
+                  canvas: Canvas,
+                  x: Float,
+                  y: Float,
+                  w: Float,
+                  h: Float,
+                  value: Float,
+                  max: Float,
+                  color: Int
+              ) {
+
+                  paint.color = Color.DKGRAY
+                  canvas.drawRoundRect(
+                      x,
+                      y,
+                      x + w,
+                      y + h,
+                      10f,
+                      10f,
+                      paint
+                  )
+
+                  paint.color = color
+
+                  canvas.drawRoundRect(
+                      x,
+                      y,
+                      x + w * (value / max).coerceIn(0f, 1f),
+                      y + h,
+                      10f,
+                      10f,
+                      paint
+                  )
+              }
+
+              private fun drawBars(canvas: Canvas) {
+
+                  bar(
+                      canvas,
+                      25f,
+                      50f,
+                      350f,
+                      24f,
+                      playerHP,
+                      1000f,
+                      Color.rgb(60, 220, 80)
+                  )
+
+                  bar(
+                      canvas,
+                      width - 375f,
+                      50f,
+                      350f,
+                      24f,
+                      enemyHP,
+                      1000f,
+                      Color.rgb(240, 60, 70)
+                  )
+
+                  bar(
+                      canvas,
+                      25f,
+                      80f,
+                      350f,
+                      16f,
+                      playerKi,
+                      maxKi,
+                      Color.rgb(50, 150, 255)
+                  )
+
+                  text.textSize = 17f
+                  text.textAlign = Paint.Align.LEFT
+                  text.color = Color.WHITE
+
+                  canvas.drawText(
+                      if (transformed) "SUPER WARRIOR" else "WARRIOR",
+                      25f,
+                      35f,
+                      text
+                  )
+
+                  text.textAlign = Paint.Align.RIGHT
+
+                  canvas.drawText(
+                      enemyName,
+                      width - 25f,
+                      35f,
+                      text
+                  )
+              }
+
+              private fun circleButton(
+                  canvas: Canvas,
+                  label: String,
+                  x: Float,
+                  y: Float,
+                  r: Float
+              ) {
+
+                  paint.color = Color.argb(190, 15, 20, 40)
+
+                  canvas.drawCircle(
+                      x,
+                      y,
+                      r,
+                      paint
+                  )
+
+                  paint.style = Paint.Style.STROKE
+                  paint.strokeWidth = 3f
+                  paint.color = Color.rgb(255, 180, 30)
+
+                  canvas.drawCircle(
+                      x,
+                      y,
+                      r,
+                      paint
+                  )
+
+                  paint.style = Paint.Style.FILL
+
+                  text.textSize = 17f
+                  text.textAlign = Paint.Align.CENTER
+                  text.color = Color.WHITE
+
+                  canvas.drawText(
+                      label,
+                      x,
+                      y + 6,
+                      text
+                  )
+              }
+
+              private fun drawControls(canvas: Canvas) {
+
+                  val h = height.toFloat()
+                  val w = width.toFloat()
+
+                  paint.color = Color.argb(90, 255, 255, 255)
+
+                  canvas.drawCircle(
+                      125f,
+                      h - 130f,
+                      90f,
+                      paint
+                  )
+
+                  paint.color = Color.argb(180, 255, 255, 255)
+
+                  canvas.drawCircle(
+                      125f + joyX,
+                      h - 130f + joyY,
+                      35f,
+                      paint
+                  )
+
+                  circleButton(canvas, "ATK", w - 120f, h - 130f, 50f)
+                  circleButton(canvas, "KI", w - 235f, h - 95f, 42f)
+                  circleButton(canvas, "DASH", w - 350f, h - 80f, 42f)
+
+                  circleButton(canvas, "BLOCK", w - 235f, h - 190f, 42f)
+                  circleButton(canvas, "SPECIAL", w - 120f, h - 250f, 52f)
+                  circleButton(canvas, "ULT", w - 350f, h - 210f, 48f)
+                  circleButton(canvas, "TRANS", w - 470f, h - 100f, 44f)
+
+                  if (messageTimer > 0) {
+
+                      text.textSize = 35f
+                      text.textAlign = Paint.Align.CENTER
+                      text.color = Color.WHITE
+
+                      canvas.drawText(
+                          message,
+                          w / 2f,
+                          h / 2f - 80f,
+                          text
+                      )
+                  }
+              }
+
+              private fun updateBattle() {
+
+                  if (attackTimer > 0)
+                      attackTimer -= .016f
+
+                  if (specialTimer > 0)
+                      specialTimer -= .016f
+
+                  if (ultimateTimer > 0)
+                      ultimateTimer -= .016f
+
+                  if (cameraShake > 0)
+                      cameraShake -= 0.8f
+
+                  if (messageTimer > 0)
+                      messageTimer -= .016f
+
+                  if (comboTimer > 0) {
+                      comboTimer -= .016f
+                  } else {
+                      combo = 0
+                  }
+
+                  if (enemyHP > 0 && playerHP > 0) {
+
+                      if (Random.nextFloat() < .005f) {
+
+                          playerHP -=
+                              (20f + stage * 3f) *
+                              (100f / defense.coerceAtLeast(1))
+
+                          playerHP = playerHP.coerceAtLeast(0f)
+                      }
+                  }
+
+                  if (enemyHP <= 0) {
+
+                      coins += 100 + stage * 25
+                      xp += 100 + stage * 20
+
+                      if (xp >= level * 500) {
+                          xp = 0
+                          level++
+                          message = "LEVEL UP! ⚡"
+                          messageTimer = 2f
+                      }
+
+                      saveGame()
+
+                      enemyHP = 1000f + stage * 100f
+                      playerHP = 1000f
+
+                      stage++
+
+                      enemyName =
+                          when (stage % 5) {
+                              0 -> "GALACTIC BOSS"
+                              1 -> "GALAXY WARRIOR"
+                              2 -> "VOID FIGHTER"
+                              3 -> "COSMIC TITAN"
+                              else -> "POWER LORD"
+                          }
+                  }
+              }
+
+              private fun attack() {
+
+                  val damage =
+                      attack *
+                      if (transformed) 2 else 1
+
+                  enemyHP -= damage.toFloat()
+
+                  combo++
+                  comboTimer = 1.3f
+
+                  attackTimer = .25f
+                  cameraShake = 10f
+
+                  message =
+                      if (combo > 1)
+                          "COMBO x$combo!"
+                      else
+                          "HIT!"
+
+                  messageTimer = .4f
+              }
+
+              private fun special() {
+
+                  if (playerKi < 150)
+                      return
+
+                  playerKi -= 150f
+
+                  val damage =
+                      attack * 3f *
+                      if (transformed) 1.5f else 1f
+
+                  enemyHP -= damage
+
+                  cameraShake = 20f
+
+                  message = "ENERGY BLAST!"
+                  messageTimer = .8f
+              }
+
+              private fun ultimate() {
+
+                  if (playerKi < 500)
+                      return
+
+                  playerKi -= 500f
+
+                  enemyHP -= attack * 10f
+
+                  cameraShake = 35f
+
+                  message = "ULTIMATE ATTACK!!!"
+                  messageTimer = 1.5f
+              }
+
+              private fun transform() {
+
+                  if (transformed)
+                      return
+
+                  if (level < 3) {
+
+                      message = "LEVEL 3 REQUIRED"
+                      messageTimer = 1f
+                      return
+                  }
+
+                  transformed = true
+                  attack += 50
+                  speed += 30
+
+                  playerKi = maxKi
+
+                  message = "TRANSFORMATION!!!"
+                  messageTimer = 2f
+
+                  cameraShake = 30f
+
+                  saveGame()
+              }
+
+              private fun drawTraining(canvas: Canvas) {
+
+                  bg(canvas)
+
+                  title(canvas, "TRAINING MODE", 80f)
+
+                  text.textSize = 26f
+                  text.textAlign = Paint.Align.CENTER
+                  text.color = Color.WHITE
+
+                  canvas.drawText(
+                      "Practice combos, energy attacks and transformations",
+                      width / 2f,
+                      130f,
+                      text
+                  )
+
+                  button(
+                      canvas,
+                      "START TRAINING",
+                      width / 2f - 180f,
+                      200f,
+                      360f,
+                      70f
+                  )
+
+                  button(
+                      canvas,
+                      "BACK",
+                      width / 2f - 150f,
+                      320f,
+                      300f,
+                      60f
+                  )
+              }
+
+              private fun drawCharacters(canvas: Canvas) {
+
+                  bg(canvas)
+
+                  title(canvas, "CHARACTERS", 75f)
+
+                  val names = arrayOf(
+                      "SUPER WARRIOR",
+                      "GALAXY PRINCE",
+                      "VOID ASSASSIN",
+                      "COSMIC HERO",
+                      "POWER TITAN",
+                      "ENERGY MASTER"
+                  )
+
+                  for (i in names.indices) {
+
+                      val col = i % 3
+                      val row = i / 3
+
+                      val x = 80f + col * 280f
+                      val y = 130f + row * 180f
+
+                      button(
+                          canvas,
+                          names[i],
+                          x,
+                          y,
+                          240f,
+                          100f
+                      )
+                  }
+
+                  button(
+                      canvas,
+                      "BACK",
+                      width / 2f - 130f,
+                      height - 90f,
+                      260f,
+                      60f
+                  )
+              }
+
+              private fun drawTransformations(canvas: Canvas) {
+
+                  bg(canvas)
+
+                  title(canvas, "TRANSFORMATIONS", 75f)
+
+                  text.textSize = 24f
+                  text.textAlign = Paint.Align.CENTER
+                  text.color = Color.WHITE
+
+                  canvas.drawText(
+                      "Level 3: Super Warrior",
+                      width / 2f,
+                      150f,
+                      text
+                  )
+
+                  canvas.drawText(
+                      "Level 10: Ascended Warrior",
+                      width / 2f,
+                      200f,
+                      text
+                  )
+
+                  canvas.drawText(
+                      "Level 20: Ultimate Warrior",
+                      width / 2f,
+                      250f,
+                      text
+                  )
+
+                  canvas.drawText(
+                      "Current Level: $level",
+                      width / 2f,
+                      320f,
+                      text
+                  )
+
+                  button(
+                      canvas,
+                      "BACK",
+                      width / 2f - 130f,
+                      400f,
+                      260f,
+                      60f
+                  )
+              }
+
+              private fun drawShop(canvas: Canvas) {
+
+                  bg(canvas)
+
+                  title(canvas, "SHOP", 75f)
+
+                  text.textSize = 25f
+                  text.textAlign = Paint.Align.CENTER
+                  text.color = Color.WHITE
+
+                  canvas.drawText(
+                      "COINS: $coins",
+                      width / 2f,
+                      120f,
+                      text
+                  )
+
+                  button(
+                      canvas,
+                      "ATTACK +10   250",
+                      width / 2f - 180f,
+                      160f,
+                      360f,
+                      65f
+                  )
+
+                  button(
+                      canvas,
+                      "DEFENSE +10  250",
+                      width / 2f - 180f,
+                      240f,
+                      360f,
+                      65f
+                  )
+
+                  button(
+                      canvas,
+                      "SPEED +10    250",
+                      width / 2f - 180f,
+                      320f,
+                      360f,
+                      65f
+                  )
+
+                  button(
+                      canvas,
+                      "BACK",
+                      width / 2f - 130f,
+                      420f,
+                      260f,
+                      60f
+                  )
+              }
+
+              private fun drawSettings(canvas: Canvas) {
+
+                  bg(canvas)
+
+                  title(canvas, "SETTINGS", 80f)
+
+                  text.textSize = 25f
+                  text.textAlign = Paint.Align.CENTER
+                  text.color = Color.WHITE
+
+                  canvas.drawText(
+                      "Graphics: HIGH",
+                      width / 2f,
+                      160f,
+                      text
+                  )
+
+                  canvas.drawText(
+                      "Sound: ON",
+                      width / 2f,
+                      210f,
+                      text
+                  )
+
+                  canvas.drawText(
+                      "Music: ON",
+                      width / 2f,
+                      260f,
+                      text
+                  )
+
+                  canvas.drawText(
+                      "Auto Save: ON",
+                      width / 2f,
+                      310f,
+                      text
+                  )
+
+                  button(
+                      canvas,
+                      "BACK",
+                      width / 2f - 130f,
+                      400f,
+                      260f,
+                      60f
+                  )
+              }
+
+              private fun drawBattleMenu(canvas: Canvas) {
+
+                  bg(canvas)
+
+                  title(canvas, "BATTLE", 80f)
+
+                  button(
+                      canvas,
+                      "START BATTLE",
+                      width / 2f - 180f,
+                      170f,
+                      360f,
+                      70f
+                  )
+
+                  button(
+                      canvas,
+                      "SURVIVAL",
+                      width / 2f - 180f,
+                      260f,
+                      360f,
+                      70f
+                  )
+
+                  button(
+                      canvas,
+                      "BOSS BATTLE",
+                      width / 2f - 180f,
+                      350f,
+                      360f,
+                      70f
+                  )
+
+                  button(
+                      canvas,
+                      "BACK",
+                      width / 2f - 130f,
+                      450f,
+                      260f,
+                      60f
+                  )
+              }
+
+              private fun startBattle() {
+
+                  screen = "battle"
+
+                  playerHP = 1000f
+                  enemyHP = 1000f + stage * 100f
+
+                  playerKi = maxKi
+
+                  enemyName =
+                      when (stage % 5) {
+                          0 -> "GALACTIC BOSS"
+                          1 -> "GALAXY WARRIOR"
+                          2 -> "VOID FIGHTER"
+                          3 -> "COSMIC TITAN"
+                          else -> "POWER LORD"
+                      }
+              }
+
+              override fun onTouchEvent(event: MotionEvent): Boolean {
+
+                  touchX = event.x
+                  touchY = event.y
+
+                  if (event.action == MotionEvent.ACTION_DOWN) {
+
+                      if (screen == "menu") {
+
+                          val x = width / 2f - 125f
+
+                          when {
+                              touchY in 150f..208f -> startBattle()
+                              touchY in 220f..278f -> startBattle()
+                              touchY in 290f..348f -> startBattle()
+                              touchY in 360f..418f -> screen = "training"
+                              touchY in 430f..488f -> screen = "characters"
+                              touchY in 510f..568f && touchX < width / 2f ->
+                                  screen = "transformations"
+
+                              touchY in 510f..568f && touchX > width / 2f ->
+                                  screen = "shop"
+
+                              touchY in 580f..638f ->
+                                  screen = "settings"
+                          }
+
+                          return true
+                      }
+
+                      if (screen == "training") {
+
+                          if (touchY in 200f..270f) {
+                              startBattle()
+                          }
+
+                          if (touchY in 320f..390f) {
+                              screen = "menu"
+                          }
+
+                          return true
+                      }
+
+                      if (screen == "characters") {
+
+                          if (touchY > height - 120f)
+                              screen = "menu"
+
+                          return true
+                      }
+
+                      if (screen == "transformations") {
+
+                          if (touchY > 350f)
+                              screen = "menu"
+
+                          return true
+                      }
+
+                      if (screen == "shop") {
+
+                          if (touchY in 160f..225f && coins >= 250) {
+                              coins -= 250
+                              attack += 10
+                              saveGame()
+                          }
+
+                          if (touchY in 240f..305f && coins >= 250) {
+                              coins -= 250
+                              defense += 10
+                              saveGame()
+                          }
+
+                          if (touchY in 320f..385f && coins >= 250) {
+                              coins -= 250
+                              speed += 10
+                              saveGame()
+                          }
+
+                          if (touchY > 400f)
+                              screen = "menu"
+
+                          return true
+                      }
+
+                      if (screen == "settings") {
+
+                          if (touchY > 380f)
+                              screen = "menu"
+
+                          return true
+                      }
+
+                      if (screen == "battle") {
+
+                          val w = width.toFloat()
+                          val h = height.toFloat()
+
+                          // Attack
+                          if (
+                              distance(
+                                  touchX,
+                                  touchY,
+                                  w - 120f,
+                                  h - 130f
+                              ) < 60f
+                          ) {
+                              attack()
+                              return true
+                          }
+
+                          // Ki
+                          if (
+                              distance(
+                                  touchX,
+                                  touchY,
+                                  w - 235f,
+                                  h - 95f
+                              ) < 55f
+                          ) {
+                              special()
+                              return true
+                          }
+
+                          // Ultimate
+                          if (
+                              distance(
+                                  touchX,
+                                  touchY,
+                                  w - 350f,
+                                  h - 210f
+                              ) < 65f
+                          ) {
+                              ultimate()
+                              return true
+                          }
+
+                          // Transformation
+                          if (
+                              distance(
+                                  touchX,
+                                  touchY,
+                                  w - 470f,
+                                  h - 100f
+                              ) < 60f
+                          ) {
+                              transform()
+                              return true
+                          }
+
+                          // Back
+                          if (touchY < 100f && touchX < 150f) {
+                              screen = "menu"
+                              return true
+                          }
+
+                          // Movement joystick
+                          val dx = touchX - 125f
+                          val dy = touchY - (h - 130f)
+
+                          if (sqrt(dx * dx + dy * dy) < 120f) {
+
+                              joyX = dx.coerceIn(-70f, 70f)
+                              joyY = dy.coerceIn(-70f, 70f)
+
+                              playerX += joyX * .03f * (speed / 100f)
+                              playerY += joyY * .03f * (speed / 100f)
+
+                              playerX =
+                                  playerX.coerceIn(80f, width - 80f)
+
+                              playerY =
+                                  playerY.coerceIn(350f, height - 80f)
+                          }
+
+                          return true
+                      }
+                  }
+
+                  if (
+                      event.action == MotionEvent.ACTION_UP ||
+                      event.action == MotionEvent.ACTION_CANCEL
+                  ) {
+                      joyX = 0f
+                      joyY = 0f
+                  }
+
+                  return true
+              }
+
+              private fun distance(
+                  x1: Float,
+                  y1: Float,
+                  x2: Float,
+                  y2: Float
+              ): Float {
+
+                  val dx = x1 - x2
+                  val dy = y1 - y2
+
+                  return sqrt(dx * dx + dy * dy)
+              }
+          }
+          EOF
+
+          # =====================================================
+          # Generate Gradle wrapper
+          # =====================================================
+
+          gradle wrapper --gradle-version 8.7
+
+      # =========================================================
+      # 5) Build APK
+      # =========================================================
+      - name: 🔨 Build Debug APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      # =========================================================
+      # 6) Rename APK
+      # =========================================================
+      - name: 🐉 Prepare APK
+        run: |
+          mkdir -p release
+          cp app/build/outputs/apk/debug/app-debug.apk \
+             release/DRAGON-BALL-ULTIMATE-WARRIORS.apk
+
+      # =========================================================
+      # 7) Upload APK
+      # =========================================================
+      - name: 📦 Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          name: apk
-          path: app/build/outputs/apk/debug/
+          name: DRAGON-BALL-ULTIMATE-WARRIORS-APK
+          path: release/DRAGON-BALL-ULTIMATE-WARRIORS.apk
+          if-no-files-found: error
