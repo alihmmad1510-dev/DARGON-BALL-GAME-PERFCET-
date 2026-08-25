@@ -1,4 +1,4 @@
-name: 🐉 DRAGON BALL 678 - APK
+name: 🐉 DRAGON BALL ULTIMATE WARRIORS - 3D APK
 
 on:
   workflow_dispatch:
@@ -17,17 +17,17 @@ jobs:
 
     steps:
 
-      # =========================
+      # ============================================================
       # CHECKOUT
-      # =========================
+      # ============================================================
 
       - name: 📥 Checkout
         uses: actions/checkout@v4
 
 
-      # =========================
-      # JAVA
-      # =========================
+      # ============================================================
+      # JAVA 21
+      # ============================================================
 
       - name: ☕ Java 21
         uses: actions/setup-java@v5
@@ -36,33 +36,38 @@ jobs:
           java-version: '21'
 
 
-      # =========================
-      # NODE
-      # =========================
+      # ============================================================
+      # NODE 24
+      # ============================================================
 
       - name: 🟢 Node 24
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: '24'
+          cache: 'npm'
 
 
-      # =========================
+      # ============================================================
       # ANDROID SDK
-      # =========================
+      # ============================================================
 
-      - name: 📱 Android SDK
+      - name: 📱 Setup Android
         uses: android-actions/setup-android@v3
 
-      - name: 🛠️ Android Packages
+
+      - name: 🛠️ Install Android SDK
         run: |
+
           sdkmanager "platform-tools"
+
           sdkmanager "platforms;android-35"
+
           sdkmanager "build-tools;35.0.0"
 
 
-      # =========================
+      # ============================================================
       # CREATE PROJECT
-      # =========================
+      # ============================================================
 
       - name: 🎮 Create Project
         run: |
@@ -73,667 +78,304 @@ jobs:
 
           cat > package.json <<'EOF'
           {
-            "name": "dragon-ball-678",
+            "name": "dragon-ball-ultimate-warriors",
             "version": "1.0.0",
             "private": true,
+            "description": "Original anime inspired 3D fighting game",
             "scripts": {
-              "build": "echo build"
+              "build": "vite build"
             },
             "dependencies": {
-              "@capacitor/core": "^7.4.0",
               "@capacitor/android": "^7.4.0",
-              "@capacitor/cli": "^7.4.0"
+              "@capacitor/core": "^7.4.0",
+              "@capacitor/cli": "^7.4.0",
+              "three": "^0.178.0",
+              "vite": "^7.1.0"
             }
           }
           EOF
 
-          npm install
 
-          npx cap init \
-            "DRAGON BALL 678" \
-            "com.goku.dragonball678" \
-            --web-dir=www
+      # ============================================================
+      # INSTALL
+      # ============================================================
 
-          mkdir -p www
-
-
-      # =========================
-      # GAME HTML
-      # =========================
-
-      - name: 🐉 Create Game
+      - name: 📦 Install NPM Packages
         run: |
 
           cd game
 
-          cat > www/index.html <<'EOF'
+          npm install
 
+
+      # ============================================================
+      # CAPACITOR CONFIG
+      # ============================================================
+
+      - name: ⚡ Create Capacitor Config
+        run: |
+
+          cd game
+
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.goku.ultimatewarriors",
+            "appName": "DRAGON BALL ULTIMATE WARRIORS",
+            "webDir": "dist",
+            "server": {
+              "androidScheme": "https"
+            }
+          }
+          EOF
+
+
+      # ============================================================
+      # VITE CONFIG
+      # ============================================================
+
+      - name: ⚙️ Create Vite Config
+        run: |
+
+          cd game
+
+          cat > vite.config.js <<'EOF'
+          import { defineConfig } from "vite";
+
+          export default defineConfig({
+            base: "./",
+            build: {
+              target: "es2020",
+              sourcemap: false,
+              minify: "esbuild"
+            }
+          });
+          EOF
+
+
+      # ============================================================
+      # HTML
+      # ============================================================
+
+      - name: 🌐 Create HTML
+        run: |
+
+          cd game
+
+          mkdir -p src
+
+          cat > index.html <<'EOF'
           <!DOCTYPE html>
+
           <html lang="en">
 
           <head>
 
-          <meta charset="UTF-8">
-
-          <meta
-            name="viewport"
-            content="width=device-width,
-            initial-scale=1,
-            maximum-scale=1,
-            user-scalable=no">
-
-          <title>DRAGON BALL 678</title>
-
-          <style>
-
-          *{
-            box-sizing:border-box;
-            user-select:none;
-          }
-
-          html,
-          body{
-
-            margin:0;
-
-            width:100%;
-            height:100%;
-
-            overflow:hidden;
-
-            background:#02020b;
-
-            color:white;
-
-            font-family:Arial,sans-serif;
-
-          }
-
-          #game{
-
-            position:absolute;
-
-            inset:0;
-
-            overflow:hidden;
-
-            background:
-
-            radial-gradient(
-              circle at 50% 45%,
-              #282080,
-              #101038 35%,
-              #02020b 85%
-            );
-
-          }
-
-          #stars{
-
-            position:absolute;
-
-            inset:0;
-
-            opacity:.4;
-
-            background-image:
-
-            radial-gradient(
-              circle,
-              white 1px,
-              transparent 2px
-            );
-
-            background-size:55px 55px;
-
-            animation:
-            stars 15s linear infinite;
-
-          }
-
-          @keyframes stars{
-
-            from{
-              transform:translateY(0);
-            }
-
-            to{
-              transform:translateY(55px);
-            }
-
-          }
-
-          #menu{
-
-            position:absolute;
-
-            inset:0;
-
-            display:flex;
-
-            flex-direction:column;
-
-            align-items:center;
-
-            justify-content:center;
-
-            gap:10px;
-
-            z-index:10;
-
-          }
-
-          .title{
-
-            font-size:
-            clamp(30px,8vw,65px);
-
-            font-weight:900;
-
-            color:#ffd900;
-
-            text-shadow:
-            0 0 8px #ff7500,
-            0 0 25px #ff3000;
-
-          }
-
-          .subtitle{
-
-            color:#6edcff;
-
-            font-weight:bold;
-
-            margin-bottom:10px;
-
-          }
-
-          button{
-
-            min-width:210px;
-
-            padding:11px 25px;
-
-            border:
-            2px solid #50d8ff;
-
-            border-radius:14px;
-
-            background:
-            linear-gradient(
-              135deg,
-              #14144d,
-              #351067
-            );
-
-            color:white;
-
-            font-size:17px;
-
-            font-weight:bold;
-
-            box-shadow:
-            0 0 10px #285cff;
-
-          }
-
-          button:active{
-
-            transform:scale(.93);
-
-          }
-
-          #battle{
-
-            display:none;
-
-            position:absolute;
-
-            inset:0;
-
-          }
-
-          .hud{
-
-            position:absolute;
-
-            top:8px;
-
-            left:8px;
-
-            right:8px;
-
-            z-index:5;
-
-          }
-
-          .bar{
-
-            width:42%;
-
-            height:19px;
-
-            border:2px solid white;
-
-            border-radius:10px;
-
-            overflow:hidden;
-
-            background:#111;
-
-            display:inline-block;
-
-          }
-
-          .hp{
-
-            width:100%;
-
-            height:100%;
-
-            background:
-            linear-gradient(
-              90deg,
-              #1dff50,
-              #00a83b
-            );
-
-          }
-
-          .ki{
-
-            width:100%;
-
-            height:100%;
-
-            background:
-            linear-gradient(
-              90deg,
-              #32c8ff,
-              #663cff
-            );
-
-          }
-
-          .fighter{
-
-            position:absolute;
-
-            width:90px;
-
-            height:130px;
-
-            display:flex;
-
-            flex-direction:column;
-
-            align-items:center;
-
-            justify-content:center;
-
-            font-size:68px;
-
-          }
-
-          #player{
-
-            left:20%;
-            bottom:28%;
-
-            filter:
-            drop-shadow(
-              0 0 15px #35cfff
-            );
-
-          }
-
-          #enemy{
-
-            right:20%;
-            bottom:28%;
-
-            filter:
-            drop-shadow(
-              0 0 15px #ff452f
-            );
-
-          }
-
-          .aura{
-
-            animation:
-            aura .35s infinite alternate;
-
-          }
-
-          @keyframes aura{
-
-            from{
-
-              filter:
-              drop-shadow(
-                0 0 8px #36cfff
-              );
-
-            }
-
-            to{
-
-              filter:
-              drop-shadow(
-                0 0 30px white
-              );
-
-            }
-
-          }
-
-          #controls{
-
-            position:absolute;
-
-            bottom:10px;
-
-            left:0;
-
-            right:0;
-
-            display:flex;
-
-            justify-content:
-            space-between;
-
-            padding:10px;
-
-          }
-
-          .pad{
-
-            display:grid;
-
-            grid-template-columns:
-            repeat(3,52px);
-
-            gap:4px;
-
-          }
-
-          .action{
-
-            display:grid;
-
-            grid-template-columns:
-            repeat(2,75px);
-
-            gap:6px;
-
-          }
-
-          .small{
-
-            min-width:52px;
-
-            width:52px;
-
-            height:52px;
-
-            padding:0;
-
-            font-size:20px;
-
-          }
-
-          .attack{
-
-            min-width:75px;
-
-            height:52px;
-
-            padding:0;
-
-            font-size:11px;
-
-          }
-
-          #msg{
-
-            position:absolute;
-
-            top:50%;
-
-            left:50%;
-
-            transform:
-            translate(-50%,-50%);
-
-            font-size:28px;
-
-            font-weight:900;
-
-            text-align:center;
-
-            text-shadow:
-            0 0 15px white;
-
-            pointer-events:none;
-
-            z-index:20;
-
-          }
-
-          </style>
+            <meta charset="UTF-8">
+
+            <meta
+              name="viewport"
+              content="width=device-width,
+              initial-scale=1,
+              maximum-scale=1,
+              user-scalable=no,
+              viewport-fit=cover">
+
+            <meta
+              name="theme-color"
+              content="#000000">
+
+            <title>
+              DRAGON BALL ULTIMATE WARRIORS
+            </title>
 
           </head>
 
           <body>
 
-          <div id="game">
+            <div id="loading">
 
-            <div id="stars"></div>
-
-            <div id="menu">
-
-              <div class="title">
+              <div class="loading-title">
                 🐉 DRAGON BALL
               </div>
 
-              <div class="subtitle">
-                ⚡ ULTIMATE WARRIORS
+              <div class="loading-subtitle">
+                ULTIMATE WARRIORS
               </div>
 
-              <button onclick="startGame()">
+              <div class="loader">
+
+                <div
+                  id="loaderBar">
+                </div>
+
+              </div>
+
+              <div id="loadingText">
+                LOADING 3D WORLD...
+              </div>
+
+            </div>
+
+
+            <div id="menu">
+
+              <div class="logo">
+                G
+              </div>
+
+              <h1>
+                DRAGON BALL
+              </h1>
+
+              <h2>
+                ULTIMATE WARRIORS
+              </h2>
+
+              <button
+                onclick="Game.start()">
                 🔥 PLAY
               </button>
 
-              <button onclick="training()">
-                🥋 TRAINING
+              <button
+                onclick="Game.training()">
+                🎯 TRAINING
               </button>
 
-              <button onclick="missions()">
-                🎯 MISSIONS
+              <button
+                onclick="Game.story()">
+                📖 STORY
               </button>
 
-              <button onclick="transform()">
-                ⚡ TRANSFORM
-              </button>
-
-              <button onclick="shop()">
+              <button
+                onclick="Game.shop()">
                 💎 SHOP
               </button>
 
+              <div
+                id="stats">
+              </div>
+
             </div>
 
-            <div id="battle">
 
-              <div class="hud">
+            <div id="game">
 
-                <div class="bar">
+              <canvas
+                id="canvas">
+              </canvas>
 
-                  <div
-                    id="php"
-                    class="hp">
+
+              <div id="hud">
+
+                <div class="topHud">
+
+                  <div class="playerInfo">
+
+                    <b>
+                      HERO
+                    </b>
+
+                    <div class="bar hp">
+                      <div
+                        id="hpBar">
+                      </div>
+                    </div>
+
+                    <div class="bar ki">
+                      <div
+                        id="kiBar">
+                      </div>
+                    </div>
+
+                  </div>
+
+
+                  <div class="lock">
+
+                    <span>
+                      TARGET
+                    </span>
+
+                    <div
+                      id="targetName">
+                      ENEMY
+                    </div>
+
+                    <div class="bar enemyHp">
+                      <div
+                        id="enemyHpBar">
+                      </div>
+                    </div>
+
                   </div>
 
                 </div>
 
-                🟠 GOKU
 
-                <span style="float:right">
-                  🔴 ENEMY
-                </span>
+                <div id="combatText">
+                </div>
+
 
                 <div
-                  class="bar"
-                  style="float:right">
-
-                  <div
-                    id="ehp"
-                    class="hp">
-                  </div>
-
+                  id="score">
                 </div>
 
-                <br><br>
+              </div>
 
-                <div class="bar">
 
-                  <div
-                    id="pki"
-                    class="ki">
-                  </div>
-
-                </div>
+              <div id="touch">
 
                 <div
-                  class="bar"
-                  style="float:right">
+                  id="joystick">
 
                   <div
-                    id="eki"
-                    class="ki">
+                    id="stick">
                   </div>
 
                 </div>
 
-              </div>
 
-
-              <div
-                id="player"
-                class="fighter">
-
-                🧑‍🦱
-
-                <small>
-                  GOKU
-                </small>
-
-              </div>
-
-
-              <div
-                id="enemy"
-                class="fighter">
-
-                👹
-
-                <small>
-                  ENEMY
-                </small>
-
-              </div>
-
-
-              <div id="msg"></div>
-
-
-              <div id="controls">
-
-                <div class="pad">
-
-                  <button class="small">
-                    ↖
-                  </button>
-
-                  <button
-                    class="small"
-                    onclick="move(0,-1)">
-                    ⬆
-                  </button>
-
-                  <button class="small">
-                    ↗
-                  </button>
-
-                  <button
-                    class="small"
-                    onclick="move(-1,0)">
-                    ⬅
-                  </button>
-
-                  <button class="small">
-                    ●
-                  </button>
-
-                  <button
-                    class="small"
-                    onclick="move(1,0)">
-                    ➡
-                  </button>
-
-                  <button class="small">
-                    ↙
-                  </button>
-
-                  <button
-                    class="small"
-                    onclick="move(0,1)">
-                    ⬇
-                  </button>
-
-                  <button class="small">
-                    ↘
-                  </button>
-
-                </div>
-
-
-                <div class="action">
+                <div class="actions">
 
                   <button
                     class="attack"
-                    onclick="attack()">
-                    👊 ATTACK
+                    onclick="Game.attack()">
+                    👊
                   </button>
 
                   <button
-                    class="attack"
-                    onclick="kiBlast()">
-                    💥 KI
+                    onclick="Game.kiBlast()">
+                    💥
                   </button>
 
                   <button
-                    class="attack"
-                    onclick="beam()">
-                    🌟 BEAM
+                    onclick="Game.dash()">
+                    💨
                   </button>
 
                   <button
-                    class="attack"
-                    onclick="charge()">
-                    ⚡ CHARGE
+                    onclick="Game.block()">
+                    🛡️
                   </button>
 
                   <button
-                    class="attack"
-                    onclick="transform()">
-                    🔥 FORM
+                    onclick="Game.charge()">
+                    ⚡
                   </button>
 
                   <button
-                    class="attack"
-                    onclick="special()">
-                    ☄️ SPECIAL
+                    onclick="Game.special()">
+                    🌟
+                  </button>
+
+                  <button
+                    onclick="Game.transform()">
+                    🔥
+                  </button>
+
+                  <button
+                    onclick="Game.fly()">
+                    🚀
                   </button>
 
                 </div>
@@ -742,434 +384,2425 @@ jobs:
 
             </div>
 
-          </div>
 
+            <style>
 
-          <script>
+              * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+                user-select: none;
+                -webkit-user-select: none;
+                touch-action: none;
+              }
 
-          let playerHP=100;
-          let enemyHP=100;
+              html,
+              body {
 
-          let playerKi=100;
-          let enemyKi=100;
+                width: 100%;
+                height: 100%;
 
-          let level=1;
-          let coins=0;
-          let power=100;
+                overflow: hidden;
 
-          let transformed=false;
+                background: #000;
 
+                color: white;
 
-          function $(id){
+                font-family:
+                  Arial,
+                  Helvetica,
+                  sans-serif;
 
-            return document.getElementById(id);
+              }
 
-          }
 
+              #loading {
 
-          function startGame(){
+                position: fixed;
 
-            $("menu").style.display="none";
+                inset: 0;
 
-            $("battle").style.display="block";
+                z-index: 100;
 
-            reset();
+                display: flex;
 
-            message(
-              "🔥 BATTLE START!"
-            );
+                flex-direction: column;
 
-          }
+                align-items: center;
 
+                justify-content: center;
 
-          function reset(){
-
-            playerHP=100;
-            enemyHP=100;
-
-            playerKi=100;
-            enemyKi=100;
-
-            update();
-
-          }
-
-
-          function update(){
-
-            $("php").style.width=
-              Math.max(
-                0,
-                playerHP
-              )+"%";
-
-            $("ehp").style.width=
-              Math.max(
-                0,
-                enemyHP
-              )+"%";
-
-            $("pki").style.width=
-              Math.max(
-                0,
-                playerKi
-              )+"%";
-
-            $("eki").style.width=
-              Math.max(
-                0,
-                enemyKi
-              )+"%";
-
-          }
-
-
-          function damage(amount){
-
-            enemyHP-=amount;
-
-            if(enemyHP<=0){
-
-              enemyHP=0;
-
-              coins+=100;
-              level++;
-              power+=20;
-
-              message(
-                "🏆 VICTORY!"
-              );
-
-              setTimeout(
-                reset,
-                1500
-              );
-
-            }
-
-            update();
-
-          }
-
-
-          function attack(){
-
-            damage(
-              transformed
-              ? 18
-              : 10
-            );
-
-            enemyAttack();
-
-          }
-
-
-          function kiBlast(){
-
-            if(playerKi<10){
-
-              message(
-                "⚡ NO KI!"
-              );
-
-              return;
-
-            }
-
-            playerKi-=10;
-
-            damage(
-              transformed
-              ? 28
-              : 17
-            );
-
-            enemyAttack();
-
-            update();
-
-          }
-
-
-          function beam(){
-
-            if(playerKi<30){
-
-              message(
-                "🔵 KI LOW!"
-              );
-
-              return;
-
-            }
-
-            playerKi-=30;
-
-            damage(
-              transformed
-              ? 50
-              : 35
-            );
-
-            message(
-              "💥 ENERGY BEAM!"
-            );
-
-            enemyAttack();
-
-            update();
-
-          }
-
-
-          function special(){
-
-            if(playerKi<50){
-
-              message(
-                "⚡ NEED 50 KI!"
-              );
-
-              return;
-
-            }
-
-            playerKi-=50;
-
-            damage(
-              transformed
-              ? 80
-              : 55
-            );
-
-            message(
-              "🌟 ULTIMATE!"
-            );
-
-            enemyAttack();
-
-            update();
-
-          }
-
-
-          function charge(){
-
-            playerKi=
-              Math.min(
-                100,
-                playerKi+25
-              );
-
-            message(
-              "⚡ CHARGING KI"
-            );
-
-            update();
-
-          }
-
-
-          function enemyAttack(){
-
-            setTimeout(()=>{
-
-              let damage=
-                Math.floor(
-                  Math.random()*10
-                )+5;
-
-              if(transformed){
-
-                damage=
-                  Math.floor(
-                    damage*.6
+                background:
+                  radial-gradient(
+                    circle,
+                    #151515,
+                    #000 70%
                   );
 
               }
 
-              playerHP-=damage;
 
-              if(playerHP<=0){
+              .loading-title {
 
-                playerHP=0;
+                font-size: 42px;
 
-                message(
-                  "💀 DEFEAT"
-                );
+                font-weight: 900;
 
-                setTimeout(
-                  reset,
-                  1500
-                );
+                color: #ffd21c;
+
+                text-shadow:
+                  0 0 10px #ff8a00,
+                  0 0 35px #ff4d00;
 
               }
 
-              update();
 
-            },300);
+              .loading-subtitle {
 
-          }
+                margin-top: 8px;
 
+                color: #62d9ff;
 
-          function transform(){
+                font-weight: bold;
 
-            transformed=
-              !transformed;
-
-            const p=
-              $("player");
-
-            if(transformed){
-
-              p.classList.add(
-                "aura"
-              );
-
-              p.innerHTML=
-                "🔥<small>SUPER</small>";
-
-              power*=2;
-
-              message(
-                "⚡ TRANSFORMATION!"
-              );
-
-            }else{
-
-              p.classList.remove(
-                "aura"
-              );
-
-              p.innerHTML=
-                "🧑‍🦱<small>GOKU</small>";
-
-              power=
-                Math.max(
-                  100,
-                  Math.floor(
-                    power/2
-                  )
-                );
-
-            }
-
-            update();
-
-          }
+              }
 
 
-          function move(x,y){
+              .loader {
 
-            const p=
-              $("player");
+                width: 70%;
 
-            let left=
-              parseFloat(
-                getComputedStyle(p).left
-              );
+                max-width: 500px;
 
-            let bottom=
-              parseFloat(
-                getComputedStyle(p).bottom
-              );
+                height: 10px;
 
-            p.style.left=
-              Math.max(
-                5,
-                Math.min(
-                  75,
-                  left+x*5
-                )
-              )+"%";
+                margin-top: 30px;
 
-            p.style.bottom=
-              Math.max(
-                15,
-                Math.min(
-                  75,
-                  bottom-y*5
-                )
-              )+"%";
+                background: #222;
 
-          }
+                border-radius: 20px;
+
+                overflow: hidden;
+
+              }
 
 
-          function message(text){
+              #loaderBar {
 
-            $("msg").innerText=text;
+                width: 0%;
 
-            setTimeout(()=>{
+                height: 100%;
 
-              $("msg").innerText="";
+                background:
+                  linear-gradient(
+                    90deg,
+                    #ffd000,
+                    #ff7300,
+                    #fff
+                  );
 
-            },900);
-
-          }
-
-
-          function training(){
-
-            message(
-              "🥋 TRAINING!"
-            );
-
-            level++;
-            power+=50;
-
-          }
+              }
 
 
-          function missions(){
+              #loadingText {
 
-            message(
-              "🎯 MISSION COMPLETE!"
-            );
+                margin-top: 12px;
 
-            coins+=250;
+                font-size: 13px;
 
-          }
+                color: #aaa;
 
-
-          function shop(){
-
-            if(coins>=100){
-
-              coins-=100;
-              power+=50;
-
-              message(
-                "💎 POWER UP!"
-              );
-
-            }else{
-
-              message(
-                "💰 NEED 100 COINS"
-              );
-
-            }
-
-          }
+              }
 
 
-          update();
+              #menu {
 
-          </script>
+                position: fixed;
+
+                inset: 0;
+
+                z-index: 50;
+
+                display: flex;
+
+                flex-direction: column;
+
+                align-items: center;
+
+                justify-content: center;
+
+                gap: 10px;
+
+                background:
+                  radial-gradient(
+                    circle at center,
+                    #24185c,
+                    #080812 55%,
+                    #000
+                  );
+
+              }
+
+
+              .logo {
+
+                width: 120px;
+
+                height: 120px;
+
+                border-radius: 50%;
+
+                display: flex;
+
+                align-items: center;
+
+                justify-content: center;
+
+                font-size: 100px;
+
+                font-weight: 900;
+
+                color: #ffd21c;
+
+                background: #000;
+
+                border: 4px solid #ffd21c;
+
+                box-shadow:
+                  0 0 20px #ffd21c,
+                  0 0 70px #ff8a00;
+
+              }
+
+
+              #menu h1 {
+
+                font-size:
+                  clamp(30px, 8vw, 65px);
+
+                color: #ffd21c;
+
+                text-shadow:
+                  0 0 15px #ff6600;
+
+              }
+
+
+              #menu h2 {
+
+                color: #68dfff;
+
+                font-size: 18px;
+
+                letter-spacing: 4px;
+
+              }
+
+
+              button {
+
+                border: 2px solid #53d8ff;
+
+                background:
+                  linear-gradient(
+                    135deg,
+                    #14142f,
+                    #3b1464
+                  );
+
+                color: white;
+
+                border-radius: 14px;
+
+                min-width: 190px;
+
+                min-height: 48px;
+
+                padding: 8px 18px;
+
+                font-size: 16px;
+
+                font-weight: 900;
+
+                box-shadow:
+                  0 0 12px #254dff;
+
+              }
+
+
+              button:active {
+
+                transform: scale(.9);
+
+              }
+
+
+              #stats {
+
+                margin-top: 10px;
+
+                color: #ffd21c;
+
+              }
+
+
+              #game {
+
+                display: none;
+
+                position: fixed;
+
+                inset: 0;
+
+                background: #000;
+
+              }
+
+
+              #canvas {
+
+                width: 100%;
+
+                height: 100%;
+
+                display: block;
+
+              }
+
+
+              #hud {
+
+                position: fixed;
+
+                inset: 0;
+
+                pointer-events: none;
+
+              }
+
+
+              .topHud {
+
+                display: flex;
+
+                justify-content:
+                  space-between;
+
+                padding: 12px;
+
+              }
+
+
+              .playerInfo,
+              .lock {
+
+                width: 38%;
+
+                min-width: 150px;
+
+              }
+
+
+              .bar {
+
+                width: 100%;
+
+                height: 14px;
+
+                margin-top: 4px;
+
+                border:
+                  2px solid white;
+
+                border-radius: 20px;
+
+                background: #111;
+
+                overflow: hidden;
+
+              }
+
+
+              .bar div {
+
+                width: 100%;
+
+                height: 100%;
+
+              }
+
+
+              #hpBar,
+              #enemyHpBar {
+
+                background:
+                  linear-gradient(
+                    90deg,
+                    #1cff4d,
+                    #00a33c
+                  );
+
+              }
+
+
+              #kiBar {
+
+                background:
+                  linear-gradient(
+                    90deg,
+                    #28d9ff,
+                    #7048ff
+                  );
+
+              }
+
+
+              #combatText {
+
+                position: absolute;
+
+                top: 43%;
+
+                width: 100%;
+
+                text-align: center;
+
+                font-size: 32px;
+
+                font-weight: 900;
+
+                text-shadow:
+                  0 0 15px white,
+                  0 0 30px #00c8ff;
+
+              }
+
+
+              #score {
+
+                position: absolute;
+
+                top: 100px;
+
+                left: 50%;
+
+                transform:
+                  translateX(-50%);
+
+                font-weight: bold;
+
+                color: #ffd21c;
+
+              }
+
+
+              #touch {
+
+                position: fixed;
+
+                left: 0;
+
+                right: 0;
+
+                bottom: 0;
+
+                padding: 18px;
+
+                display: flex;
+
+                justify-content:
+                  space-between;
+
+                align-items:
+                  flex-end;
+
+              }
+
+
+              #joystick {
+
+                width: 135px;
+
+                height: 135px;
+
+                border-radius: 50%;
+
+                border:
+                  2px solid #6bdfff;
+
+                background:
+                  rgba(
+                    30,
+                    70,
+                    120,
+                    .35
+                  );
+
+                position: relative;
+
+              }
+
+
+              #stick {
+
+                position: absolute;
+
+                width: 58px;
+
+                height: 58px;
+
+                border-radius: 50%;
+
+                left: 37px;
+
+                top: 37px;
+
+                background:
+                  radial-gradient(
+                    circle,
+                    #fff,
+                    #54dfff,
+                    #1d4fff
+                  );
+
+                box-shadow:
+                  0 0 20px #35dfff;
+
+              }
+
+
+              .actions {
+
+                width: 190px;
+
+                display: grid;
+
+                grid-template-columns:
+                  repeat(4, 1fr);
+
+                gap: 7px;
+
+              }
+
+
+              .actions button {
+
+                min-width: 0;
+
+                width: 43px;
+
+                height: 43px;
+
+                padding: 0;
+
+                font-size: 20px;
+
+              }
+
+
+              .actions .attack {
+
+                border-color: #ff7a32;
+
+                box-shadow:
+                  0 0 15px #ff4b00;
+
+              }
+
+
+              @media (
+                orientation: portrait
+              ) {
+
+                #menu {
+
+                  padding: 10px;
+
+                }
+
+                #menu h1 {
+
+                  font-size: 30px;
+
+                }
+
+                .logo {
+
+                  width: 90px;
+                  height: 90px;
+                  font-size: 75px;
+
+                }
+
+              }
+
+            </style>
 
           </body>
 
           </html>
+          EOF
+
+
+      # ============================================================
+      # THREE.JS GAME
+      # ============================================================
+
+      - name: 🧠 Create 3D Game Engine
+        run: |
+
+          cd game
+
+          cat > src/main.js <<'EOF'
+
+          import * as THREE from "three";
+
+          import {
+            OrbitControls
+          } from "three/examples/jsm/controls/OrbitControls.js";
+
+
+          // ========================================================
+          // SAVE DATA
+          // ========================================================
+
+          const SAVE_KEY =
+            "DB_ULTIMATE_WARRIORS_SAVE";
+
+
+          let save = {
+
+            level: 1,
+
+            xp: 0,
+
+            coins: 0,
+
+            power: 100,
+
+            speed: 100,
+
+            energy: 100,
+
+            transformation: false
+
+          };
+
+
+          try {
+
+            const old =
+              localStorage.getItem(
+                SAVE_KEY
+              );
+
+            if (old) {
+
+              save =
+                Object.assign(
+                  save,
+                  JSON.parse(old)
+                );
+
+            }
+
+          } catch (_) {}
+
+
+          function saveGame() {
+
+            localStorage.setItem(
+              SAVE_KEY,
+              JSON.stringify(save)
+            );
+
+            updateStats();
+
+          }
+
+
+          function updateStats() {
+
+            const el =
+              document.getElementById(
+                "stats"
+              );
+
+            if (!el) return;
+
+            el.innerText =
+              `LV ${save.level}   •   XP ${save.xp}   •   💎 ${save.coins}`;
+
+          }
+
+
+          // ========================================================
+          // THREE.JS
+          // ========================================================
+
+          const canvas =
+            document.getElementById(
+              "canvas"
+            );
+
+
+          const renderer =
+            new THREE.WebGLRenderer({
+
+              canvas,
+
+              antialias: true,
+
+              powerPreference:
+                "high-performance"
+
+            });
+
+
+          renderer.setPixelRatio(
+            Math.min(
+              window.devicePixelRatio,
+              2
+            )
+          );
+
+
+          renderer.setSize(
+            innerWidth,
+            innerHeight
+          );
+
+
+          renderer.shadowMap.enabled = true;
+
+
+          const scene =
+            new THREE.Scene();
+
+
+          scene.background =
+            new THREE.Color(
+              0x02030a
+            );
+
+
+          scene.fog =
+            new THREE.FogExp2(
+              0x050618,
+              0.018
+            );
+
+
+          const camera =
+            new THREE.PerspectiveCamera(
+
+              65,
+
+              innerWidth /
+                innerHeight,
+
+              .1,
+
+              2000
+
+            );
+
+
+          camera.position.set(
+            0,
+            8,
+            18
+          );
+
+
+          // ========================================================
+          // LIGHT
+          // ========================================================
+
+          const ambient =
+            new THREE.HemisphereLight(
+              0x8fcfff,
+              0x080018,
+              2
+            );
+
+          scene.add(ambient);
+
+
+          const sun =
+            new THREE.DirectionalLight(
+              0xffffff,
+              3
+            );
+
+          sun.position.set(
+            20,
+            40,
+            20
+          );
+
+          sun.castShadow = true;
+
+          scene.add(sun);
+
+
+          // ========================================================
+          // WORLD
+          // ========================================================
+
+          const world =
+            new THREE.Group();
+
+          scene.add(world);
+
+
+          const ground =
+            new THREE.Mesh(
+
+              new THREE.PlaneGeometry(
+                1800,
+                1800
+              ),
+
+              new THREE.MeshStandardMaterial({
+
+                color: 0x191a27,
+
+                roughness: .85,
+
+                metalness: .05
+
+              })
+
+            );
+
+
+          ground.rotation.x =
+            -Math.PI / 2;
+
+          ground.receiveShadow = true;
+
+          world.add(ground);
+
+
+          // ========================================================
+          // ARENA
+          // ========================================================
+
+          const arena =
+            new THREE.Mesh(
+
+              new THREE.CylinderGeometry(
+                38,
+                42,
+                2,
+                64
+              ),
+
+              new THREE.MeshStandardMaterial({
+
+                color: 0x353542,
+
+                roughness: .7
+
+              })
+
+            );
+
+
+          arena.position.y = 1;
+
+          arena.receiveShadow = true;
+
+          world.add(arena);
+
+
+          // ========================================================
+          // RINGS
+          // ========================================================
+
+          for (
+            let r = 10;
+            r <= 35;
+            r += 5
+          ) {
+
+            const ring =
+              new THREE.Mesh(
+
+                new THREE.TorusGeometry(
+                  r,
+                  .06,
+                  8,
+                  64
+                ),
+
+                new THREE.MeshBasicMaterial({
+
+                  color:
+                    0x245eff
+
+                })
+
+              );
+
+            ring.rotation.x =
+              Math.PI / 2;
+
+            ring.position.y =
+              2.05;
+
+            world.add(ring);
+
+          }
+
+
+          // ========================================================
+          // STARS
+          // ========================================================
+
+          const starGeometry =
+            new THREE.BufferGeometry();
+
+
+          const starCount = 1800;
+
+          const starPositions =
+            new Float32Array(
+              starCount * 3
+            );
+
+
+          for (
+            let i = 0;
+            i < starCount;
+            i++
+          ) {
+
+            starPositions[i*3] =
+              (Math.random()-.5)*1200;
+
+            starPositions[i*3+1] =
+              Math.random()*500+30;
+
+            starPositions[i*3+2] =
+              (Math.random()-.5)*1200;
+
+          }
+
+
+          starGeometry.setAttribute(
+
+            "position",
+
+            new THREE.BufferAttribute(
+              starPositions,
+              3
+            )
+
+          );
+
+
+          const stars =
+            new THREE.Points(
+
+              starGeometry,
+
+              new THREE.PointsMaterial({
+
+                color: 0xffffff,
+
+                size: 1.5
+
+              })
+
+            );
+
+
+          scene.add(stars);
+
+
+          // ========================================================
+          // FIGHTER CREATOR
+          // ========================================================
+
+          function createFighter(
+            color,
+            auraColor
+          ) {
+
+            const root =
+              new THREE.Group();
+
+
+            const body =
+              new THREE.Mesh(
+
+                new THREE.CapsuleGeometry(
+                  1,
+                  2.4,
+                  8,
+                  16
+                ),
+
+                new THREE.MeshStandardMaterial({
+
+                  color,
+
+                  roughness: .45,
+
+                  metalness: .1
+
+                })
+
+              );
+
+
+            body.position.y = 3;
+
+            body.castShadow = true;
+
+            root.add(body);
+
+
+            const head =
+              new THREE.Mesh(
+
+                new THREE.SphereGeometry(
+                  1.05,
+                  20,
+                  20
+                ),
+
+                new THREE.MeshStandardMaterial({
+
+                  color: 0xffc58f
+
+                })
+
+              );
+
+
+            head.position.y = 5.2;
+
+            head.castShadow = true;
+
+            root.add(head);
+
+
+            const aura =
+              new THREE.Mesh(
+
+                new THREE.SphereGeometry(
+                  2.5,
+                  20,
+                  20
+                ),
+
+                new THREE.MeshBasicMaterial({
+
+                  color: auraColor,
+
+                  transparent: true,
+
+                  opacity: .08,
+
+                  side:
+                    THREE.BackSide
+
+                })
+
+              );
+
+
+            aura.position.y = 3;
+
+            root.add(aura);
+
+
+            root.userData = {
+
+              body,
+
+              head,
+
+              aura,
+
+              auraColor,
+
+              hp: 100,
+
+              ki: 100,
+
+              blocking: false,
+
+              flying: false
+
+            };
+
+
+            return root;
+
+          }
+
+
+          const player =
+            createFighter(
+              0x176cff,
+              0x32cfff
+            );
+
+
+          player.position.set(
+            -10,
+            2,
+            0
+          );
+
+
+          world.add(player);
+
+
+          const enemy =
+            createFighter(
+              0xff3030,
+              0xff4422
+            );
+
+
+          enemy.position.set(
+            10,
+            2,
+            0
+          );
+
+
+          world.add(enemy);
+
+
+          enemy.rotation.y =
+            Math.PI;
+
+
+          // ========================================================
+          // LOCK ON
+          // ========================================================
+
+          let locked = true;
+
+
+          function lookAtEnemy() {
+
+            if (!locked) return;
+
+            const target =
+              enemy.position.clone();
+
+            target.y =
+              player.position.y + 3;
+
+            const direction =
+              target
+                .sub(player.position)
+                .normalize();
+
+
+            const angle =
+              Math.atan2(
+                direction.x,
+                direction.z
+              );
+
+
+            player.rotation.y =
+              angle;
+
+          }
+
+
+          // ========================================================
+          // EFFECTS
+          // ========================================================
+
+          const effects =
+            new THREE.Group();
+
+          scene.add(effects);
+
+
+          function energySphere(
+            position,
+            color,
+            size
+          ) {
+
+            const mesh =
+              new THREE.Mesh(
+
+                new THREE.SphereGeometry(
+                  size,
+                  16,
+                  16
+                ),
+
+                new THREE.MeshBasicMaterial({
+
+                  color,
+
+                  transparent: true,
+
+                  opacity: .9
+
+                })
+
+              );
+
+
+            mesh.position.copy(
+              position
+            );
+
+            effects.add(mesh);
+
+
+            return mesh;
+
+          }
+
+
+          function beam() {
+
+            const start =
+              player.position.clone();
+
+            start.y += 4;
+
+
+            const end =
+              enemy.position.clone();
+
+            end.y += 3;
+
+
+            const direction =
+              end.clone()
+                .sub(start);
+
+
+            const length =
+              direction.length();
+
+
+            const mesh =
+              new THREE.Mesh(
+
+                new THREE.CylinderGeometry(
+                  .45,
+                  .8,
+                  length,
+                  16
+                ),
+
+                new THREE.MeshBasicMaterial({
+
+                  color: 0x58d9ff
+
+                })
+
+              );
+
+
+            mesh.position.copy(
+              start.clone().add(
+                direction.clone()
+                  .multiplyScalar(.5)
+              )
+            );
+
+
+            mesh.quaternion.setFromUnitVectors(
+
+              new THREE.Vector3(
+                0,
+                1,
+                0
+              ),
+
+              direction.normalize()
+
+            );
+
+
+            effects.add(mesh);
+
+
+            setTimeout(
+              () => {
+                effects.remove(mesh);
+              },
+              180
+            );
+
+          }
+
+
+          function explosion(
+            position,
+            color
+          ) {
+
+            for (
+              let i = 0;
+              i < 16;
+              i++
+            ) {
+
+              const p =
+                energySphere(
+                  position,
+                  color,
+                  .15
+                );
+
+
+              p.userData.velocity =
+                new THREE.Vector3(
+
+                  Math.random()-.5,
+
+                  Math.random()-.2,
+
+                  Math.random()-.5
+
+                ).multiplyScalar(1.5);
+
+            }
+
+          }
+
+
+          // ========================================================
+          // DAMAGE
+          // ========================================================
+
+          function damageEnemy(
+            amount
+          ) {
+
+            if (
+              enemy.userData.hp <= 0
+            )
+              return;
+
+
+            enemy.userData.hp =
+              Math.max(
+                0,
+                enemy.userData.hp -
+                  amount
+              );
+
+
+            explosion(
+              enemy.position.clone()
+                .add(
+                  new THREE.Vector3(
+                    0,3,0
+                  )
+                ),
+              0x55ccff
+            );
+
+
+            if (
+              enemy.userData.hp <= 0
+            ) {
+
+              save.xp += 100;
+
+              save.coins += 150;
+
+              save.level =
+                Math.max(
+                  1,
+                  Math.floor(
+                    save.xp / 500
+                  ) + 1
+                );
+
+
+              showText(
+                "🏆 VICTORY!"
+              );
+
+
+              setTimeout(
+                resetBattle,
+                1800
+              );
+
+
+              saveGame();
+
+            }
+
+          }
+
+
+          // ========================================================
+          // PLAYER DAMAGE
+          // ========================================================
+
+          function damagePlayer(
+            amount
+          ) {
+
+            if (
+              player.userData.blocking
+            ) {
+
+              amount *= .25;
+
+            }
+
+
+            player.userData.hp =
+              Math.max(
+                0,
+                player.userData.hp -
+                  amount
+              );
+
+
+            if (
+              player.userData.hp <= 0
+            ) {
+
+              showText(
+                "💀 DEFEAT"
+              );
+
+              setTimeout(
+                resetBattle,
+                1800
+              );
+
+            }
+
+          }
+
+
+          // ========================================================
+          // COMBAT
+          // ========================================================
+
+          let combo = 0;
+
+          let lastAttack = 0;
+
+
+          function attack() {
+
+            const now =
+              performance.now();
+
+
+            if (
+              now - lastAttack < 220
+            )
+              return;
+
+
+            lastAttack = now;
+
+            combo++;
+
+
+            if (
+              combo > 5
+            )
+              combo = 1;
+
+
+            const damage =
+              8 +
+              combo * 3 +
+              (
+                save.transformation
+                ? 15
+                : 0
+              );
+
+
+            damageEnemy(
+              damage
+            );
+
+
+            showText(
+              `👊 COMBO x${combo}`
+            );
+
+          }
+
+
+          function kiBlast() {
+
+            if (
+              player.userData.ki < 15
+            ) {
+
+              showText(
+                "⚡ LOW KI"
+              );
+
+              return;
+
+            }
+
+
+            player.userData.ki -=
+              15;
+
+
+            const direction =
+              new THREE.Vector3(
+                0,
+                0,
+                1
+              );
+
+
+            direction.applyQuaternion(
+              player.quaternion
+            );
+
+
+            const projectile =
+              energySphere(
+
+                player.position.clone()
+                  .add(
+                    new THREE.Vector3(
+                      0,3.5,0
+                    )
+                  ),
+
+                0x42d9ff,
+
+                .5
+
+              );
+
+
+            projectile.userData.velocity =
+              direction.multiplyScalar(2);
+
+
+            projectile.userData.projectile =
+              true;
+
+
+            showText(
+              "💥 KI BLAST!"
+            );
+
+
+            damageEnemy(
+              save.transformation
+              ? 30
+              : 20
+            );
+
+          }
+
+
+          function special() {
+
+            if (
+              player.userData.ki < 45
+            ) {
+
+              showText(
+                "⚡ NEED 45 KI"
+              );
+
+              return;
+
+            }
+
+
+            player.userData.ki -=
+              45;
+
+
+            beam();
+
+
+            damageEnemy(
+              save.transformation
+              ? 75
+              : 50
+            );
+
+
+            showText(
+              "🌟 ULTIMATE!"
+            );
+
+          }
+
+
+          function charge() {
+
+            player.userData.ki =
+              Math.min(
+                100,
+                player.userData.ki +
+                  35
+              );
+
+
+            showText(
+              "⚡ CHARGING"
+            );
+
+          }
+
+
+          function block() {
+
+            player.userData.blocking =
+              !player.userData.blocking;
+
+
+            showText(
+              player.userData.blocking
+              ? "🛡️ BLOCK"
+              : "⚔️ READY"
+            );
+
+          }
+
+
+          function dash() {
+
+            const forward =
+              new THREE.Vector3(
+                0,
+                0,
+                1
+              );
+
+
+            forward.applyQuaternion(
+              player.quaternion
+            );
+
+
+            player.position.add(
+              forward.multiplyScalar(4)
+            );
+
+
+            explosion(
+              player.position,
+              0x38cfff
+            );
+
+          }
+
+
+          function fly() {
+
+            player.userData.flying =
+              !player.userData.flying;
+
+
+            showText(
+              player.userData.flying
+              ? "🚀 FLIGHT"
+              : "⬇️ LAND"
+            );
+
+          }
+
+
+          function transform() {
+
+            save.transformation =
+              !save.transformation;
+
+
+            const aura =
+              player.userData.aura;
+
+
+            aura.material.opacity =
+              save.transformation
+              ? .35
+              : .08;
+
+
+            aura.scale.setScalar(
+              save.transformation
+              ? 1.6
+              : 1
+            );
+
+
+            showText(
+              save.transformation
+              ? "🔥 TRANSFORMATION!"
+              : "⚡ NORMAL FORM"
+            );
+
+
+            saveGame();
+
+          }
+
+
+          // ========================================================
+          // ENEMY AI
+          // ========================================================
+
+          let enemyTimer = 0;
+
+
+          function enemyAI(
+            delta
+          ) {
+
+            if (
+              enemy.userData.hp <= 0
+            )
+              return;
+
+
+            const direction =
+              player.position.clone()
+                .sub(
+                  enemy.position
+                );
+
+
+            direction.y = 0;
+
+
+            const distance =
+              direction.length();
+
+
+            if (
+              distance > 7
+            ) {
+
+              direction.normalize();
+
+              enemy.position.add(
+                direction.multiplyScalar(
+                  delta * .9
+                )
+              );
+
+            }
+
+
+            enemy.lookAt(
+              player.position.x,
+              enemy.position.y + 3,
+              player.position.z
+            );
+
+
+            enemyTimer += delta;
+
+
+            if (
+              distance < 10 &&
+              enemyTimer > 1.3
+            ) {
+
+              enemyTimer = 0;
+
+              damagePlayer(
+                6 +
+                Math.floor(
+                  Math.random()*7
+                )
+              );
+
+            }
+
+          }
+
+
+          // ========================================================
+          // RESET
+          // ========================================================
+
+          function resetBattle() {
+
+            player.userData.hp = 100;
+
+            player.userData.ki = 100;
+
+            enemy.userData.hp = 100;
+
+            player.position.set(
+              -10,
+              2,
+              0
+            );
+
+            enemy.position.set(
+              10,
+              2,
+              0
+            );
+
+            combo = 0;
+
+          }
+
+
+          // ========================================================
+          // UI
+          // ========================================================
+
+          function showText(
+            text
+          ) {
+
+            const el =
+              document.getElementById(
+                "combatText"
+              );
+
+
+            el.innerText = text;
+
+
+            setTimeout(
+              () => {
+
+                if (
+                  el.innerText === text
+                )
+                  el.innerText = "";
+
+              },
+              700
+            );
+
+          }
+
+
+          function updateUI() {
+
+            document.getElementById(
+              "hpBar"
+            ).style.width =
+              player.userData.hp + "%";
+
+
+            document.getElementById(
+              "kiBar"
+            ).style.width =
+              player.userData.ki + "%";
+
+
+            document.getElementById(
+              "enemyHpBar"
+            ).style.width =
+              enemy.userData.hp + "%";
+
+
+            document.getElementById(
+              "score"
+            ).innerText =
+              `LV ${save.level} • XP ${save.xp} • 💎 ${save.coins}`;
+
+          }
+
+
+          // ========================================================
+          // MENU
+          // ========================================================
+
+          const Game = {
+
+            start() {
+
+              document.getElementById(
+                "menu"
+              ).style.display =
+                "none";
+
+
+              document.getElementById(
+                "game"
+              ).style.display =
+                "block";
+
+
+              resetBattle();
+
+
+              showText(
+                "🔥 BATTLE START!"
+              );
+
+            },
+
+
+            training() {
+
+              save.xp += 50;
+
+              save.power += 10;
+
+              saveGame();
+
+              showText(
+                "🎯 TRAINING COMPLETE"
+              );
+
+            },
+
+
+            story() {
+
+              save.xp += 100;
+
+              save.coins += 50;
+
+              saveGame();
+
+              showText(
+                "📖 STORY MISSION"
+              );
+
+            },
+
+
+            shop() {
+
+              if (
+                save.coins >= 100
+              ) {
+
+                save.coins -= 100;
+
+                save.power += 25;
+
+                save.energy += 10;
+
+                saveGame();
+
+                showText(
+                  "💎 POWER UPGRADE!"
+                );
+
+              } else {
+
+                showText(
+                  "💰 NEED 100 COINS"
+                );
+
+              }
+
+            },
+
+            attack,
+
+            kiBlast,
+
+            dash,
+
+            block,
+
+            charge,
+
+            special,
+
+            transform,
+
+            fly
+
+          };
+
+
+          window.Game = Game;
+
+
+          // ========================================================
+          // JOYSTICK
+          // ========================================================
+
+          const joystick =
+            document.getElementById(
+              "joystick"
+            );
+
+
+          const stick =
+            document.getElementById(
+              "stick"
+            );
+
+
+          let joystickActive =
+            false;
+
+
+          let joystickX = 0;
+
+          let joystickY = 0;
+
+
+          function joystickMove(
+            event
+          ) {
+
+            const rect =
+              joystick.getBoundingClientRect();
+
+
+            const point =
+              event.touches
+              ? event.touches[0]
+              : event;
+
+
+            let x =
+              point.clientX -
+              rect.left -
+              rect.width/2;
+
+
+            let y =
+              point.clientY -
+              rect.top -
+              rect.height/2;
+
+
+            const max =
+              rect.width/2 -
+              30;
+
+
+            const length =
+              Math.sqrt(
+                x*x + y*y
+              );
+
+
+            if (
+              length > max
+            ) {
+
+              x =
+                x / length * max;
+
+              y =
+                y / length * max;
+
+            }
+
+
+            joystickX =
+              x / max;
+
+            joystickY =
+              y / max;
+
+
+            stick.style.transform =
+              `translate(${x}px,${y}px)`;
+
+          }
+
+
+          function joystickEnd() {
+
+            joystickActive = false;
+
+            joystickX = 0;
+
+            joystickY = 0;
+
+            stick.style.transform =
+              "translate(0,0)";
+
+          }
+
+
+          joystick.addEventListener(
+            "touchstart",
+            e => {
+
+              joystickActive = true;
+
+              joystickMove(e);
+
+            },
+            {
+              passive: false
+            }
+          );
+
+
+          joystick.addEventListener(
+            "touchmove",
+            e => {
+
+              e.preventDefault();
+
+              joystickMove(e);
+
+            },
+            {
+              passive: false
+            }
+          );
+
+
+          joystick.addEventListener(
+            "touchend",
+            joystickEnd
+          );
+
+
+          // ========================================================
+          // CAMERA
+          // ========================================================
+
+          const cameraTarget =
+            new THREE.Vector3();
+
+
+          function updateCamera() {
+
+            const desired =
+              new THREE.Vector3(
+                0,
+                7,
+                17
+              );
+
+
+            desired.applyQuaternion(
+              player.quaternion
+            );
+
+
+            desired.add(
+              player.position
+            );
+
+
+            camera.position.lerp(
+              desired,
+              .08
+            );
+
+
+            cameraTarget.copy(
+              player.position
+            );
+
+
+            cameraTarget.y += 3;
+
+
+            camera.lookAt(
+              cameraTarget
+            );
+
+          }
+
+
+          // ========================================================
+          // MOVEMENT
+          // ========================================================
+
+          function movement(
+            delta
+          ) {
+
+            if (
+              Math.abs(joystickX) < .05 &&
+              Math.abs(joystickY) < .05
+            )
+              return;
+
+
+            const speed =
+              save.transformation
+              ? 12
+              : 8;
+
+
+            const forward =
+              new THREE.Vector3(
+                0,
+                0,
+                1
+              );
+
+
+            forward.applyQuaternion(
+              player.quaternion
+            );
+
+
+            const right =
+              new THREE.Vector3(
+                1,
+                0,
+                0
+              );
+
+
+            right.applyQuaternion(
+              player.quaternion
+            );
+
+
+            player.position.add(
+
+              forward.multiplyScalar(
+                -joystickY *
+                speed *
+                delta
+              )
+
+            );
+
+
+            player.position.add(
+
+              right.multiplyScalar(
+                joystickX *
+                speed *
+                delta
+              )
+
+            );
+
+
+            if (
+              player.userData.flying
+            ) {
+
+              player.position.y =
+                7 +
+                Math.sin(
+                  performance.now()/300
+                ) * .8;
+
+            } else {
+
+              player.position.y =
+                2;
+
+            }
+
+          }
+
+
+          // ========================================================
+          // ANIMATION LOOP
+          // ========================================================
+
+          const clock =
+            new THREE.Clock();
+
+
+          function animate() {
+
+            requestAnimationFrame(
+              animate
+            );
+
+
+            const delta =
+              Math.min(
+                clock.getDelta(),
+                .05
+              );
+
+
+            movement(delta);
+
+            enemyAI(delta);
+
+            lookAtEnemy();
+
+            updateCamera();
+
+            updateUI();
+
+
+            // Aura animation
+
+            const pulse =
+              1 +
+              Math.sin(
+                performance.now()/120
+              ) * .08;
+
+
+            player.userData.aura
+              .scale.setScalar(
+                save.transformation
+                ? 1.6 * pulse
+                : pulse
+              );
+
+
+            // Effects
+
+            for (
+              let i =
+                effects.children.length-1;
+              i >= 0;
+              i--
+            ) {
+
+              const obj =
+                effects.children[i];
+
+
+              if (
+                obj.userData.velocity
+              ) {
+
+                obj.position.add(
+                  obj.userData.velocity
+                );
+
+                obj.userData.velocity
+                  .multiplyScalar(.94);
+
+              }
+
+
+              obj.scale.multiplyScalar(
+                .96
+              );
+
+
+              if (
+                obj.scale.x < .03
+              ) {
+
+                effects.remove(obj);
+
+              }
+
+            }
+
+
+            renderer.render(
+              scene,
+              camera
+            );
+
+          }
+
+
+          // ========================================================
+          // RESIZE
+          // ========================================================
+
+          window.addEventListener(
+            "resize",
+            () => {
+
+              camera.aspect =
+                innerWidth /
+                innerHeight;
+
+              camera.updateProjectionMatrix();
+
+              renderer.setSize(
+                innerWidth,
+                innerHeight
+              );
+
+            }
+          );
+
+
+          // ========================================================
+          // START
+          // ========================================================
+
+          updateStats();
+
+
+          let loading = 0;
+
+
+          const loadingTimer =
+            setInterval(
+              () => {
+
+                loading += 5;
+
+
+                document.getElementById(
+                  "loaderBar"
+                ).style.width =
+                  loading + "%";
+
+
+                if (
+                  loading >= 100
+                ) {
+
+                  clearInterval(
+                    loadingTimer
+                  );
+
+
+                  document.getElementById(
+                    "loading"
+                  ).style.display =
+                    "none";
+
+                }
+
+              },
+              35
+            );
+
+
+          animate();
 
           EOF
 
 
-      # =========================
-      # ADD ANDROID
-      # =========================
+      # ============================================================
+      # BUILD WEB
+      # ============================================================
 
-      - name: 📱 Create Android Project
+      - name: 🏗️ Build 3D Web Game
+        run: |
+
+          cd game
+
+          npm run build
+
+
+      # ============================================================
+      # ADD ANDROID
+      # ============================================================
+
+      - name: 📱 Add Capacitor Android
         run: |
 
           cd game
@@ -1179,37 +2812,234 @@ jobs:
           npx cap sync android
 
 
-      # =========================
-      # GRADLE
-      # =========================
+      # ============================================================
+      # GOLDEN G ICON
+      # ============================================================
 
-      - name: ⚙️ Configure Gradle
+      - name: 🖤 Create Golden G Icon
+        run: |
+
+          cd game
+
+          python3 -m pip install --quiet Pillow
+
+
+          python3 - <<'PY'
+
+          from PIL import Image, ImageDraw
+
+          SIZE = 512
+
+          img = Image.new(
+              "RGBA",
+              (SIZE, SIZE),
+              (0,0,0,255)
+          )
+
+          draw = ImageDraw.Draw(img)
+
+          cx = SIZE // 2
+
+          cy = SIZE // 2
+
+          outer = 170
+
+          inner = 105
+
+
+          # GOLDEN CIRCLE
+
+          draw.ellipse(
+
+              (
+                cx-outer,
+                cy-outer,
+                cx+outer,
+                cy+outer
+              ),
+
+              fill=(255,195,20,255)
+
+          )
+
+
+          # BLACK CENTER
+
+          draw.ellipse(
+
+              (
+                cx-inner,
+                cy-inner,
+                cx+inner,
+                cy+inner
+              ),
+
+              fill=(0,0,0,255)
+
+          )
+
+
+          # OPEN THE G
+
+          draw.rectangle(
+
+              (
+                cx,
+                cy-18,
+                cx+110,
+                cy+35
+              ),
+
+              fill=(0,0,0,255)
+
+          )
+
+
+          # G BAR
+
+          draw.rectangle(
+
+              (
+                cx-5,
+                cy-5,
+                cx+100,
+                cy+35
+              ),
+
+              fill=(255,195,20,255)
+
+          )
+
+
+          # GOLDEN ENERGY RINGS
+
+          for i in range(8):
+
+              r = outer + 5 + i*4
+
+              alpha = max(
+                  0,
+                  90-i*10
+              )
+
+              draw.ellipse(
+
+                  (
+                    cx-r,
+                    cy-r,
+                    cx+r,
+                    cy+r
+                  ),
+
+                  outline=(
+                    255,
+                    195,
+                    20,
+                    alpha
+                  ),
+
+                  width=3
+
+              )
+
+
+          img.save(
+              "golden-g.png"
+          )
+
+          PY
+
+
+      # ============================================================
+      # INSTALL ANDROID ICONS
+      # ============================================================
+
+      - name: 📱 Install Golden G Android Icon
+        run: |
+
+          cd game
+
+          python3 - <<'PY'
+
+          from PIL import Image
+
+          base =
+              Image.open(
+                  "golden-g.png"
+              ).convert("RGBA")
+
+
+          sizes = {
+
+              "mipmap-mdpi": 48,
+
+              "mipmap-hdpi": 72,
+
+              "mipmap-xhdpi": 96,
+
+              "mipmap-xxhdpi": 144,
+
+              "mipmap-xxxhdpi": 192
+
+          }
+
+
+          for folder, size in sizes.items():
+
+              path =
+                  f"android/app/src/main/res/{folder}"
+
+              import os
+
+              os.makedirs(
+                  path,
+                  exist_ok=True
+              )
+
+
+              image =
+                  base.resize(
+                      (size,size),
+                      Image.Resampling.LANCZOS
+                  )
+
+
+              image.save(
+                  f"{path}/ic_launcher.png"
+              )
+
+
+              image.save(
+                  f"{path}/ic_launcher_round.png"
+              )
+
+          PY
+
+
+      # ============================================================
+      # ANDROID MANIFEST
+      # ============================================================
+
+      - name: ⚙️ Configure Android
         run: |
 
           cd game/android
 
           cat > gradle.properties <<'EOF'
-
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
-
           org.gradle.daemon=false
-
           org.gradle.parallel=true
-
           org.gradle.caching=true
-
           android.useAndroidX=true
-
           android.enableJetifier=true
-
           EOF
 
 
-      # =========================
+      # ============================================================
       # BUILD DEBUG APK
-      # =========================
+      # ============================================================
 
-      - name: 🔨 Build APK
+      - name: 🔨 Build Debug APK
         run: |
 
           cd game/android
@@ -1217,58 +3047,60 @@ jobs:
           chmod +x gradlew
 
           ./gradlew assembleDebug \
-            --no-daemon
+            --no-daemon \
+            --stacktrace
 
 
-      # =========================
+      # ============================================================
       # CHECK APK
-      # =========================
+      # ============================================================
 
       - name: 🔍 Check APK
         run: |
 
-          APK="game/android/app/build/outputs/apk/debug/app-debug.apk"
+          echo "======================================"
 
-          if [ ! -f "$APK" ]; then
+          echo "🐉 DRAGON BALL ULTIMATE WARRIORS"
 
-            echo "❌ APK NOT FOUND"
+          echo "======================================"
 
-            exit 1
-
-          fi
-
-          echo "✅ APK FOUND"
-
-          ls -lh "$APK"
-
-          echo "📦 APK INFO"
-
-          aapt dump badging "$APK" | head -20
+          find \
+            game/android/app/build/outputs/apk/debug \
+            -name "*.apk" \
+            -exec ls -lh {} \;
 
 
-      # =========================
+      # ============================================================
       # RENAME
-      # =========================
+      # ============================================================
 
       - name: 🐉 Rename APK
         run: |
 
-          cp \
-            game/android/app/build/outputs/apk/debug/app-debug.apk \
-            DRAGON-BALL-678.apk
+          APK=$(find \
+            game/android/app/build/outputs/apk/debug \
+            -name "*.apk" \
+            | head -n 1)
 
 
-      # =========================
-      # UPLOAD
-      # =========================
+          cp "$APK" \
+            DRAGON-BALL-ULTIMATE-WARRIORS-DEBUG.apk
+
+
+      # ============================================================
+      # UPLOAD APK
+      # ============================================================
 
       - name: 🚀 Upload APK
         uses: actions/upload-artifact@v4
 
         with:
 
-          name: DRAGON-BALL-678-APK
+          name:
+            DRAGON-BALL-ULTIMATE-WARRIORS-DEBUG
 
-          path: DRAGON-BALL-678.apk
+          path:
+            DRAGON-BALL-ULTIMATE-WARRIORS-DEBUG.apk
 
-          if-no-files-found: error
+          if-no-files-found:
+            error
